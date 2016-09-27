@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "dependencies": {
     "aws-sdk": "^2.6.4"
   }

@@ -60,7 +60,6 @@ function readShard (shardIterator) {
     if (err) console.log(err, err.stack)
     else {
       data.Records.forEach((x) => {
-        console.log(x.Data)
         console.log(x.Data.toString())
       })
       readShard(data.NextShardIterator)

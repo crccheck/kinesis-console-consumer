@@ -10,6 +10,9 @@
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "kinesis-console-consumer": "./index.js"
+  },
   "keywords": [],
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache 2.0",

@@ -72,9 +72,9 @@ function readShard (shardIterator) {
 
 module.exports.listStreams = listStreams
 
-module.exports.main = function (streamName) {
+module.exports.main = function (streamName, getShardIteratorOptions) {
   getShardId(streamName)
-  .then((shardId) => getShardIterator(streamName, shardId))
+  .then((shardId) => getShardIterator(streamName, shardId, getShardIteratorOptions))
   .then((shardIterator) => readShard(shardIterator))
   .catch((err) => console.log(err, err.stack))
 }

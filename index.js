@@ -1,0 +1,73 @@
+// http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
+const AWS = require('aws-sdk')
+
+const kinesis = new AWS.Kinesis()
+
+// kinesis.listStreams({}, (err, data) => {
+//   if (err) {
+//     console.error(err)
+//   } else {
+//     console.log(data)
+//   }
+// })
+
+const streamName = process.argv[2]
+
+function readShard(shardIterator) {
+  const params = {
+    ShardIterator: shardIterator,
+    Limit: 100
+  }
+  kinesis.getRecords(params, (err, data) => {
+    if (err) console.log(err, err.stack)
+    else {
+      data.Records.forEach((x) => {
+        console.log(x.Data)
+        console.log(x.Data.toString())
+      });
+      readShard(data.NextShardIterator)
+    }
+  })
+}
+
+function getShardId(streamName) {
+  return new Promise((resolve, reject) => {
+    kinesis.describeStream({
+      StreamName: streamName
+    }, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        if (data.StreamDescription.Shards.length) {
+          // For heavy duty cases, we would return all shard ids and spin up a
+          // reader for each shards
+          resolve(data.StreamDescription.Shards[0].ShardId)
+        } else {
+          reject('No shards!')
+        }
+      }
+    })
+  })
+}
+
+function getShardIterator(streamName, shardId) {
+  return new Promise((resolve, reject) => {
+    kinesis.getShardIterator({
+      ShardId: shardId,
+      // AT_SEQUIENCE_NUMBER AFTER_SEQUENCE_NUMBER TRIM_HORIZON LATEST AT_TIMESTAMP
+      ShardIteratorType: 'LATEST',
+      StreamName: streamName
+    }, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(data.ShardIterator)
+      }
+    })
+  })
+}
+
+getShardId(streamName)
+.then((shardId) => getShardIterator(streamName, shardId))
+.then((shardIterator) => readShard(shardIterator))
+.catch((err) => console.log(err, err.stack))

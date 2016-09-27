@@ -32,9 +32,10 @@ function readShard (shardIterator) {
 
 function getShardId (streamName) {
   return new Promise((resolve, reject) => {
-    kinesis.describeStream({
+    const params = {
       StreamName: streamName,
-    }, (err, data) => {
+    }
+    kinesis.describeStream(params, (err, data) => {
       if (err) {
         reject(err)
       } else {
@@ -52,11 +53,12 @@ function getShardId (streamName) {
 
 function getShardIterator (streamName, shardId) {
   return new Promise((resolve, reject) => {
-    kinesis.getShardIterator({
+    const params = {
       ShardId: shardId,
       ShardIteratorType: 'LATEST',
       StreamName: streamName,
-    }, (err, data) => {
+    }
+    kinesis.getShardIterator(params, (err, data) => {
       if (err) {
         reject(err)
       } else {

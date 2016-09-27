@@ -17,7 +17,8 @@
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "^2.6.4"
+    "aws-sdk": "^2.6.4",
+    "commander": "^2.9.0"
   },
   "devDependencies": {},
   "repository": {

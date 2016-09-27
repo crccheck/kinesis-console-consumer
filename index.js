@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 //
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
 const AWS = require('aws-sdk')
@@ -12,8 +11,6 @@ const kinesis = new AWS.Kinesis()
 //     console.log(data)
 //   }
 // })
-
-const streamName = process.argv[2]
 
 function readShard(shardIterator) {
   const params = {
@@ -69,7 +66,9 @@ function getShardIterator(streamName, shardId) {
   })
 }
 
-getShardId(streamName)
-.then((shardId) => getShardIterator(streamName, shardId))
-.then((shardIterator) => readShard(shardIterator))
-.catch((err) => console.log(err, err.stack))
+module.exports.main = function (streamName) {
+  getShardId(streamName)
+  .then((shardId) => getShardIterator(streamName, shardId))
+  .then((shardIterator) => readShard(shardIterator))
+  .catch((err) => console.log(err, err.stack))
+}

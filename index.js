@@ -13,10 +13,10 @@ function listStreams () {
   })
 }
 
-function readShard(shardIterator) {
+function readShard (shardIterator) {
   const params = {
     ShardIterator: shardIterator,
-    Limit: 100
+    Limit: 100,
   }
   kinesis.getRecords(params, (err, data) => {
     if (err) console.log(err, err.stack)
@@ -24,16 +24,16 @@ function readShard(shardIterator) {
       data.Records.forEach((x) => {
         console.log(x.Data)
         console.log(x.Data.toString())
-      });
+      })
       readShard(data.NextShardIterator)
     }
   })
 }
 
-function getShardId(streamName) {
+function getShardId (streamName) {
   return new Promise((resolve, reject) => {
     kinesis.describeStream({
-      StreamName: streamName
+      StreamName: streamName,
     }, (err, data) => {
       if (err) {
         reject(err)
@@ -50,12 +50,12 @@ function getShardId(streamName) {
   })
 }
 
-function getShardIterator(streamName, shardId) {
+function getShardIterator (streamName, shardId) {
   return new Promise((resolve, reject) => {
     kinesis.getShardIterator({
       ShardId: shardId,
       ShardIteratorType: 'LATEST',
-      StreamName: streamName
+      StreamName: streamName,
     }, (err, data) => {
       if (err) {
         reject(err)

@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "node index.js",
+    "lint": "eslint .",
+    "pretest": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
@@ -20,7 +22,12 @@
     "aws-sdk": "^2.6.4",
     "commander": "^2.9.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^3.6.1",
+    "eslint-config-standard": "^6.1.0",
+    "eslint-plugin-promise": "^2.0.1",
+    "eslint-plugin-standard": "^2.0.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/crccheck/kinesis-console-consumer.git"

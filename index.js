@@ -54,7 +54,6 @@ function getShardIterator(streamName, shardId) {
   return new Promise((resolve, reject) => {
     kinesis.getShardIterator({
       ShardId: shardId,
-      // AT_SEQUIENCE_NUMBER AFTER_SEQUENCE_NUMBER TRIM_HORIZON LATEST AT_TIMESTAMP
       ShardIteratorType: 'LATEST',
       StreamName: streamName
     }, (err, data) => {

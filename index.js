@@ -13,23 +13,6 @@ function listStreams () {
   })
 }
 
-function readShard (shardIterator) {
-  const params = {
-    ShardIterator: shardIterator,
-    Limit: 100,
-  }
-  kinesis.getRecords(params, (err, data) => {
-    if (err) console.log(err, err.stack)
-    else {
-      data.Records.forEach((x) => {
-        console.log(x.Data)
-        console.log(x.Data.toString())
-      })
-      readShard(data.NextShardIterator)
-    }
-  })
-}
-
 function getShardId (streamName) {
   return new Promise((resolve, reject) => {
     const params = {
@@ -68,7 +51,28 @@ function getShardIterator (streamName, shardId) {
   })
 }
 
+function readShard (shardIterator) {
+  const params = {
+    ShardIterator: shardIterator,
+    Limit: 100,
+  }
+  kinesis.getRecords(params, (err, data) => {
+    if (err) console.log(err, err.stack)
+    else {
+      data.Records.forEach((x) => {
+        console.log(x.Data)
+        console.log(x.Data.toString())
+      })
+      readShard(data.NextShardIterator)
+    }
+  })
+}
+
+// EXPORTS
+//////////
+
 module.exports.listStreams = listStreams
+
 module.exports.main = function (streamName) {
   getShardId(streamName)
   .then((shardId) => getShardIterator(streamName, shardId))

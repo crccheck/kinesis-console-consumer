@@ -1,6 +1,8 @@
 Kinesis Console Consumer
 ========================
 
+[![npm version](https://badge.fury.io/js/kinesis-console-consumer.svg)](https://badge.fury.io/js/kinesis-console-consumer)
+
 The [Kafka quickstart] demos a simple consumer so you can quickly inspect your
 Kafka stream. Unfortunately, there is no equivalent for AWS Kinesis...
 

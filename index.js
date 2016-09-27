@@ -23,8 +23,8 @@ function getShardId (streamName) {
         reject(err)
       } else {
         if (data.StreamDescription.Shards.length) {
-          // For heavy duty cases, we would return all shard ids and spin up a
-          // reader for each shards
+          // TODO For heavy duty cases, we would return all shard ids and spin
+          // up a reader for each shards
           resolve(data.StreamDescription.Shards[0].ShardId)
         } else {
           reject('No shards!')
@@ -34,13 +34,13 @@ function getShardId (streamName) {
   })
 }
 
-function getShardIterator (streamName, shardId) {
+function getShardIterator (streamName, shardId, options) {
   return new Promise((resolve, reject) => {
-    const params = {
+    const params = Object.assign({
       ShardId: shardId,
       ShardIteratorType: 'LATEST',
       StreamName: streamName,
-    }
+    }, options || {})
     kinesis.getShardIterator(params, (err, data) => {
       if (err) {
         reject(err)
@@ -62,6 +62,10 @@ function readShard (shardIterator) {
       data.Records.forEach((x) => {
         console.log(x.Data.toString())
       })
+      if (!data.NextShardIterator) {
+        return  // Shard has been closed
+      }
+
       readShard(data.NextShardIterator)
     }
   })
@@ -72,9 +76,9 @@ function readShard (shardIterator) {
 
 module.exports.listStreams = listStreams
 
-module.exports.main = function (streamName) {
+module.exports.main = function (streamName, getShardIteratorOptions) {
   getShardId(streamName)
-  .then((shardId) => getShardIterator(streamName, shardId))
+  .then((shardId) => getShardIterator(streamName, shardId, getShardIteratorOptions))
   .then((shardIterator) => readShard(shardIterator))
   .catch((err) => console.log(err, err.stack))
 }

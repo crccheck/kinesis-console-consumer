@@ -16,8 +16,6 @@ Usage
 
     kinesis-console-consumer <stream_name>
 
-If no stream name is specified, a list of streams is printed.
-
 ### Help
 
 ```
@@ -33,8 +31,18 @@ $ kinesis-console-consumer --help
     --type-oldest                   start reading from the oldest data (TRIM_HORIZON)
     --type-at <sequence_number>     start reading from this sequence number (AT_SEQUENCE_NUMBER)
     --type-after <sequence_number>  start reading after this sequence number (AFTER_SEQUENCE_NUMBER)
-    --type-timestamp <timestamp>    start reading after this time (units: epoch milliseconds) (AT_TIMESTAMP)
+    --type-timestamp <timestamp>    start reading after this time (units: epoch seconds) (AT_TIMESTAMP)
 ```
+
+### Examples
+
+List Kinesis streams:
+
+    kinesis-console-consumer
+
+Display contents of a stream, "hello-world", starting from 15 minutes ago:
+
+    kinesis-console-consumer 'hello-world' --type-timestamp "$(($(date +%s) - 900))"
 
 
   [Kafka quickstart]: http://kafka.apache.org/documentation.html#quickstart_consume

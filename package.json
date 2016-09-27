@@ -1,7 +1,7 @@
 {
   "name": "kinesis-console-consumer",
   "version": "0.0.0",
-  "description": "",
+  "description": "AWS Kinesis stream consumer for the console",
   "main": "index.js",
   "engines": {
     "node": ">4.0"
@@ -15,8 +15,17 @@
   },
   "keywords": [],
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "dependencies": {
     "aws-sdk": "^2.6.4"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crccheck/kinesis-console-consumer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crccheck/kinesis-console-consumer/issues"
+  },
+  "homepage": "https://github.com/crccheck/kinesis-console-consumer#readme"
 }

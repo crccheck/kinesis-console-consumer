@@ -34,13 +34,13 @@ function getShardId (streamName) {
   })
 }
 
-function getShardIterator (streamName, shardId) {
+function getShardIterator (streamName, shardId, options) {
   return new Promise((resolve, reject) => {
-    const params = {
+    const params = Object.assign({
       ShardId: shardId,
       ShardIteratorType: 'LATEST',
       StreamName: streamName,
-    }
+    }, options || {})
     kinesis.getShardIterator(params, (err, data) => {
       if (err) {
         reject(err)

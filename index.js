@@ -23,8 +23,8 @@ function getShardId (streamName) {
         reject(err)
       } else {
         if (data.StreamDescription.Shards.length) {
-          // For heavy duty cases, we would return all shard ids and spin up a
-          // reader for each shards
+          // TODO For heavy duty cases, we would return all shard ids and spin
+          // up a reader for each shards
           resolve(data.StreamDescription.Shards[0].ShardId)
         } else {
           reject('No shards!')
@@ -62,6 +62,10 @@ function readShard (shardIterator) {
       data.Records.forEach((x) => {
         console.log(x.Data.toString())
       })
+      if (!data.NextShardIterator) {
+        return  // Shard has been closed
+      }
+
       readShard(data.NextShardIterator)
     }
   })

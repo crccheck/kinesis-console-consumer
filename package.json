@@ -10,7 +10,8 @@
     "start": "node index.js",
     "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "tdd": "mocha --watch --reporter dot --bail"
   },
   "bin": {
     "kinesis-console-consumer": "./cli.js"
@@ -20,13 +21,16 @@
   "license": "Apache-2.0",
   "dependencies": {
     "aws-sdk": "^2.6.4",
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "proxyquire": "^1.7.10"
   },
   "devDependencies": {
     "eslint": "^3.6.1",
     "eslint-config-standard": "^6.1.0",
     "eslint-plugin-promise": "^2.0.1",
-    "eslint-plugin-standard": "^2.0.1"
+    "eslint-plugin-standard": "^2.0.1",
+    "mocha": "^3.1.0",
+    "sinon": "^1.17.6"
   },
   "repository": {
     "type": "git",

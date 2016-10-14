@@ -7,14 +7,12 @@ describe('main', () => {
     let main
 
     before(() => {
-      class Kinesis {
-        listStreams (params, cb) {
-          cb(undefined, 'dat data')
-        }
-      }
-
       const AWS = {
-        Kinesis,
+        Kinesis: class {
+          listStreams (params, cb) {
+            cb(undefined, 'dat data')
+          }
+        },
       }
 
       main = proxyquire('../index', {'aws-sdk': AWS})
@@ -31,14 +29,12 @@ describe('main', () => {
     let main
 
     before(() => {
-      class Kinesis {
-        listStreams (params, cb) {
-          cb('lol error')
-        }
-      }
-
       const AWS = {
-        Kinesis,
+        Kinesis: class {
+          listStreams (params, cb) {
+            cb('lol error')
+          }
+        },
       }
 
       main = proxyquire('../index', {'aws-sdk': AWS})

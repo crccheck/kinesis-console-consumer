@@ -39,5 +39,5 @@ program
   .parse(process.argv)
 
 if (!program.args.length) {
-  index.listStreams()
+  index.getStreams().then((data) => console.log(data))
 }

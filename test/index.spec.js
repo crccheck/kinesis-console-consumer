@@ -23,7 +23,7 @@ describe('main', () => {
     it('returns data from AWS', () => {
       AWS.Kinesis.prototype.listStreams = (params, cb) => cb(undefined, 'dat data')
       const main = proxyquire('../index', {'aws-sdk': AWS})
-      main._getStreams()
+      main.getStreams()
         .then((data) => {
           assert.strictEqual(data, 'dat data')
         })
@@ -32,7 +32,7 @@ describe('main', () => {
     it('handles errors', () => {
       AWS.Kinesis.prototype.listStreams = (params, cb) => cb('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main._getStreams()
+      return main.getStreams()
         .then((data) => {
           assert.strictEqual(true, false)
         })

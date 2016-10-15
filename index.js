@@ -78,7 +78,7 @@ function readShard (shardIterator) {
 // EXPORTS
 //////////
 
-module.exports._getStreams = getStreams
+module.exports.getStreams = getStreams
 module.exports._getShardId = getShardId
 module.exports._getShardIterator = getShardIterator
 module.exports._readShard = readShard

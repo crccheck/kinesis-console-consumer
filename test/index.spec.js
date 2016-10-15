@@ -1,14 +1,17 @@
-const proxyquire = require('proxyquire').noCallThru()
 const assert = require('assert')
+const proxyquire = require('proxyquire').noCallThru()
 const sinon = require('sinon')
 
 
 describe('main', () => {
-  let main
+  let AWS
 
   beforeEach(() => {
     sinon.stub(console, 'log')
     sinon.stub(console, 'error')
+    AWS = {
+      Kinesis: class {},
+    }
   })
 
   afterEach(() => {
@@ -16,178 +19,88 @@ describe('main', () => {
     console.error.restore()
   })
 
-
-  describe('getStreams returns data from AWS', () => {
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          listStreams (params, cb) {
-            cb(undefined, 'dat data')
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
-    })
-
-    it('works', () =>
+  describe('getStreams', () => {
+    it('returns data from AWS', () => {
+      AWS.Kinesis.prototype.listStreams = (params, cb) => cb(undefined, 'dat data')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
       main._getStreams()
         .then((data) => {
           assert.strictEqual(data, 'dat data')
         })
-    )
-  })
-
-  describe('getStreams handles errors', () => {
-    let main
-
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          listStreams (params, cb) {
-            cb('lol error')
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
     })
 
-    it('works', () =>
-      main._getStreams()
+    it('handles errors', () => {
+      AWS.Kinesis.prototype.listStreams = (params, cb) => cb('lol error')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main._getStreams()
         .then((data) => {
           assert.strictEqual(true, false)
         })
         .catch((err) => {
           assert.strictEqual(err, 'lol error')
         })
-    )
+    })
   })
 
-
-  describe('getShardId throws when there are no shards', () => {
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          describeStream (params, cb) {
-            cb(undefined, {StreamDescription: {Shards: []}})
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
-    })
-
-    it('works', () =>
-      main._getShardId()
+  describe('getShardId', () => {
+    it('throws when there are no shards', () => {
+      AWS.Kinesis.prototype.describeStream = (params, cb) =>
+      cb(undefined, {StreamDescription: {Shards: []}})
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main._getShardId()
         .then((data) => {
           assert.strictEqual(data, 'shard id')
         })
         .catch((err) => {
           assert.strictEqual(err, 'No shards!')
         })
-    )
-  })
-
-  describe('getShardId gets shard id', () => {
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          describeStream (params, cb) {
-            cb(undefined, {StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
     })
 
-    it('works', () =>
-      main._getShardId()
+    it('gets shard id', () => {
+      AWS.Kinesis.prototype.describeStream = (params, cb) =>
+        cb(undefined, {StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main._getShardId()
         .then((data) => {
           assert.strictEqual(data, 'shard id')
         })
-    )
+    })
   })
 
-
-  describe('getShardIterator gets shard iterator', () => {
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          getShardIterator (params, cb) {
-            cb(undefined, {ShardIterator: 'shard iterator'})
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
-    })
-
-    it('works', () =>
-      main._getShardIterator()
+  describe('getShardIterator', () => {
+    it('gets shard iterator', () => {
+      AWS.Kinesis.prototype.getShardIterator = (params, cb) =>
+        cb(undefined, {ShardIterator: 'shard iterator'})
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main._getShardIterator()
         .then((data) => {
           assert.strictEqual(data, 'shard iterator')
         })
-    )
+    })
   })
 
-
-  describe('readShard exits when there is an error', () => {
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          getRecords (params, cb) {
-            cb('hi')
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
+  describe('readShard', () => {
+    it('exits when there is an error', () => {
+      AWS.Kinesis.prototype.getRecords = (params, cb) =>
+        cb('hi')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      main._readShard()
     })
 
-    it('works', () =>
+    it('exits when shard is closed', () => {
+      AWS.Kinesis.prototype.getRecords = (params, cb) =>
+        cb(undefined, {Records: []})
+      const main = proxyquire('../index', {'aws-sdk': AWS})
       main._readShard()
-    )
-  })
-
-  describe('readShard exits when shard is closed', () => {
-    before(() => {
-      const AWS = {
-        Kinesis: class {
-          getRecords (params, cb) {
-            cb(undefined, {Records: []})
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
     })
 
-    it('works', () =>
-      main._readShard()
-    )
-  })
-
-  describe('readShard continues to read open shard', () => {
-    let getNextIterator
-
-    before(() => {
-      getNextIterator = sinon.stub()
+    it('continues to read open shard', () => {
+      const getNextIterator = sinon.stub()
       getNextIterator.onFirstCall().returns('shard iterator')
       getNextIterator.onSecondCall().returns(undefined)
-      const AWS = {
-        Kinesis: class {
-          getRecords (params, cb) {
-            cb(undefined, {Records: [], NextShardIterator: getNextIterator()})
-          }
-        },
-      }
-
-      main = proxyquire('../index', {'aws-sdk': AWS})
-    })
-
-    it('works', () => {
+      AWS.Kinesis.prototype.getRecords = (params, cb) =>
+      cb(undefined, {Records: [], NextShardIterator: getNextIterator()})
+      const main = proxyquire('../index', {'aws-sdk': AWS})
       main._readShard()
       assert.strictEqual(getNextIterator.callCount, 2)
     })

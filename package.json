@@ -10,13 +10,17 @@
     "start": "node index.js",
     "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "mocha",
+    "test": "istanbul cover _mocha",
     "tdd": "mocha --watch --reporter dot --bail"
   },
   "bin": {
     "kinesis-console-consumer": "./cli.js"
   },
-  "keywords": ["aws", "kinesis", "cli"],
+  "keywords": [
+    "aws",
+    "kinesis",
+    "cli"
+  ],
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache-2.0",
   "dependencies": {
@@ -28,6 +32,7 @@
     "eslint-config-standard": "^6.1.0",
     "eslint-plugin-promise": "^2.0.1",
     "eslint-plugin-standard": "^2.0.1",
+    "istanbul": "^0.4.5",
     "mocha": "^3.1.0",
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.6"

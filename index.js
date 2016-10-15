@@ -3,13 +3,17 @@ const AWS = require('aws-sdk')
 
 const kinesis = new AWS.Kinesis()
 
-function listStreams () {
-  kinesis.listStreams({}, (err, data) => {
-    if (err) {
-      console.error(err)
-    } else {
-      console.log(data)
-    }
+
+function getStreams () {
+  return new Promise((resolve, reject) => {
+    kinesis.listStreams({}, (err, data) => {
+      if (err) {
+        console.error(err)
+        reject(err)
+      } else {
+        resolve(data)
+      }
+    })
   })
 }
 
@@ -74,7 +78,10 @@ function readShard (shardIterator) {
 // EXPORTS
 //////////
 
-module.exports.listStreams = listStreams
+module.exports.getStreams = getStreams
+module.exports._getShardId = getShardId
+module.exports._getShardIterator = getShardIterator
+module.exports._readShard = readShard
 
 module.exports.main = function (streamName, getShardIteratorOptions) {
   getShardId(streamName)

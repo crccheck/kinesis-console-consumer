@@ -1,6 +1,7 @@
 Kinesis Console Consumer
 ========================
 
+[![Build Status](https://travis-ci.org/crccheck/kinesis-console-consumer.svg?branch=master)](https://travis-ci.org/crccheck/kinesis-console-consumer)
 [![npm version](https://badge.fury.io/js/kinesis-console-consumer.svg)](https://badge.fury.io/js/kinesis-console-consumer)
 
 The [Kafka quickstart] demos a simple consumer so you can quickly inspect your

@@ -16,7 +16,7 @@
   "bin": {
     "kinesis-console-consumer": "./cli.js"
   },
-  "keywords": [],
+  "keywords": ["aws", "kinesis", "cli"],
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache-2.0",
   "dependencies": {

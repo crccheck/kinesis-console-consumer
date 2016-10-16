@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "lint": "eslint .",
+    "lint": "eslint --ignore-path .gitignore .",
     "pretest": "npm run lint",
     "test": "istanbul cover _mocha",
     "tdd": "mocha --watch --reporter dot --bail",

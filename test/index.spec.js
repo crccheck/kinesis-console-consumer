@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const proxyquire = require('proxyquire').noCallThru()
 const sinon = require('sinon')
@@ -15,8 +17,8 @@ describe('main', () => {
   })
 
   afterEach(() => {
-    console.log.restore()
     console.error.restore()
+    console.log.restore()
   })
 
   describe('getStreams', () => {
@@ -65,6 +67,19 @@ describe('main', () => {
           assert.strictEqual(data, 'shard id')
         })
     })
+
+    it('handles errors', () => {
+      AWS.Kinesis.prototype.describeStream = (params, cb) =>
+        cb('lol error')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main._getShardId()
+        .then((data) => {
+          assert.strictEqual(true, false)
+        })
+        .catch((err) => {
+          assert.strictEqual(err, 'lol error')
+        })
+    })
   })
 
   describe('getShardIterator', () => {
@@ -75,6 +90,19 @@ describe('main', () => {
       return main._getShardIterator()
         .then((data) => {
           assert.strictEqual(data, 'shard iterator')
+        })
+    })
+
+    it('handles errors', () => {
+      AWS.Kinesis.prototype.getShardIterator = (params, cb) =>
+        cb('lol error')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main._getShardIterator()
+        .then((data) => {
+          assert.strictEqual(true, false)
+        })
+        .catch((err) => {
+          assert.strictEqual(err, 'lol error')
         })
     })
   })
@@ -99,7 +127,7 @@ describe('main', () => {
       getNextIterator.onFirstCall().returns('shard iterator')
       getNextIterator.onSecondCall().returns(undefined)
       AWS.Kinesis.prototype.getRecords = (params, cb) =>
-      cb(undefined, {Records: [], NextShardIterator: getNextIterator()})
+      cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       main._readShard()
       assert.strictEqual(getNextIterator.callCount, 2)

@@ -4,7 +4,7 @@
   "description": "AWS Kinesis stream consumer for the console",
   "main": "index.js",
   "engines": {
-    "node": ">6.0"
+    "node": ">4.0"
   },
   "scripts": {
     "start": "node index.js",

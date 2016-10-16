@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-const program = require('commander')
 const fs = require('fs')
+const program = require('commander')
+const updateNotifier = require('update-notifier')
 const index = require('./')
 
 const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
@@ -41,3 +42,5 @@ program
 if (!program.args.length) {
   index.getStreams().then((data) => console.log(data))
 }
+
+updateNotifier({pkg}).notify()

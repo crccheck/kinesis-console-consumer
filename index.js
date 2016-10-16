@@ -1,3 +1,4 @@
+'use strict'
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
 const AWS = require('aws-sdk')
 

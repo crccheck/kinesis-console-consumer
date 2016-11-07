@@ -123,14 +123,18 @@ describe('main', () => {
     })
 
     it('continues to read open shard', () => {
+      const clock = sinon.useFakeTimers()
       const getNextIterator = sinon.stub()
       getNextIterator.onFirstCall().returns('shard iterator')
       getNextIterator.onSecondCall().returns(undefined)
       AWS.Kinesis.prototype.getRecords = (params, cb) =>
-      cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
+        cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       main._readShard()
+      assert.strictEqual(getNextIterator.callCount, 1)
+      clock.tick(10000)  // A number bigger than the idle time
       assert.strictEqual(getNextIterator.callCount, 2)
+      clock.restore()
     })
   })
 })

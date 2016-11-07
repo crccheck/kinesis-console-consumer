@@ -59,7 +59,7 @@ function getShardIterator (streamName, shardId, options) {
 function readShard (shardIterator) {
   const params = {
     ShardIterator: shardIterator,
-    Limit: 100,
+    Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
   }
   kinesis.getRecords(params, (err, data) => {
     if (err) console.log(err, err.stack)
@@ -71,7 +71,10 @@ function readShard (shardIterator) {
         return  // Shard has been closed
       }
 
-      readShard(data.NextShardIterator)
+      setTimeout(function () {
+        readShard(data.NextShardIterator)
+        // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
+      }, 2000)
     }
   })
 }

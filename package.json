@@ -27,6 +27,7 @@
   "dependencies": {
     "aws-sdk": "^2.7.27",
     "commander": "^2.9.0",
+    "debug": "^2.6.0",
     "update-notifier": "^1.0.3"
   },
   "devDependencies": {

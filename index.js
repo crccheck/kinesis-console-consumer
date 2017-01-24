@@ -1,6 +1,7 @@
 'use strict'
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
 const AWS = require('aws-sdk')
+const debug = require('debug')('kinesis-console-consumer')
 
 const kinesis = new AWS.Kinesis()
 
@@ -28,6 +29,7 @@ function getShardId (streamName) {
         reject(err)
       } else {
         if (data.StreamDescription.Shards.length) {
+          debug('getShardId found %d shards', data.StreamDescription.Shards.length)
           resolve(data.StreamDescription.Shards.map((x) => x.ShardId))
         } else {
           reject('No shards!')
@@ -48,6 +50,7 @@ function getShardIterator (streamName, shardId, options) {
       if (err) {
         reject(err)
       } else {
+        debug('getShardIterator got iterator id: %s', data.ShardIterator)
         resolve(data.ShardIterator)
       }
     })
@@ -55,6 +58,7 @@ function getShardIterator (streamName, shardId, options) {
 }
 
 function readShard (shardIterator) {
+  debug('readShard starting from %s', shardIterator)
   const params = {
     ShardIterator: shardIterator,
     Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
@@ -66,9 +70,11 @@ function readShard (shardIterator) {
         console.log(x.Data.toString())
       })
       if (!data.NextShardIterator) {
-        return  // Shard has been closed
+        debug('readShard.closed %s', shardIterator)
+        return
       }
 
+      // Putting something on the next tick will prevent the program from finishing
       setTimeout(function () {
         readShard(data.NextShardIterator)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html

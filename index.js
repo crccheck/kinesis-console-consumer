@@ -87,8 +87,14 @@ module.exports._readShard = readShard
 
 module.exports.main = function (streamName, getShardIteratorOptions) {
   getShardId(streamName)
-  // TODO For heavy duty cases, we would  spin up a reader for each shard
-  .then((shardIds) => getShardIterator(streamName, shardIds[0], getShardIteratorOptions))
-  .then((shardIterator) => readShard(shardIterator))
+  .then((shardIds) => {
+    const shardIterators = shardIds.map((shardId) =>
+      getShardIterator(streamName, shardId, getShardIteratorOptions))
+    return Promise.all(shardIterators)
+  })
+  .then((shardIterators) => {
+    shardIterators.forEach((shardIterator) => readShard(shardIterator))
+    // return Promise.all(shardIterators.map((shardIterator) => readShard(shardIterator)))
+  })
   .catch((err) => console.log(err, err.stack))
 }

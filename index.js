@@ -28,9 +28,7 @@ function getShardId (streamName) {
         reject(err)
       } else {
         if (data.StreamDescription.Shards.length) {
-          // TODO For heavy duty cases, we would return all shard ids and spin
-          // up a reader for each shards
-          resolve(data.StreamDescription.Shards[0].ShardId)
+          resolve(data.StreamDescription.Shards.map((x) => x.ShardId))
         } else {
           reject('No shards!')
         }
@@ -89,7 +87,8 @@ module.exports._readShard = readShard
 
 module.exports.main = function (streamName, getShardIteratorOptions) {
   getShardId(streamName)
-  .then((shardId) => getShardIterator(streamName, shardId, getShardIteratorOptions))
+  // TODO For heavy duty cases, we would  spin up a reader for each shard
+  .then((shardIds) => getShardIterator(streamName, shardIds[0], getShardIteratorOptions))
   .then((shardIterator) => readShard(shardIterator))
   .catch((err) => console.log(err, err.stack))
 }

@@ -25,19 +25,19 @@
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "^2.6.15",
+    "aws-sdk": "^2.7.27",
     "commander": "^2.9.0",
-    "update-notifier": "^1.0.2"
+    "update-notifier": "^1.0.3"
   },
   "devDependencies": {
-    "eslint": "^3.9.1",
+    "eslint": "^3.14.0",
     "eslint-config-standard": "^6.2.0",
-    "eslint-plugin-promise": "^3.3.1",
+    "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
     "istanbul": "^0.4.5",
-    "mocha": "^3.1.2",
+    "mocha": "^3.2.0",
     "proxyquire": "^1.7.10",
-    "sinon": "^1.17.6"
+    "sinon": "^1.17.7"
   },
   "repository": {
     "type": "git",

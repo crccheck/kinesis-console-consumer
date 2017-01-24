@@ -11,12 +11,19 @@ const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
 program
   .version(pkg.version)
   .arguments('<stream_name>')
+  // XXX --list works as an accident of not specifying a stream_name
+  .option('--list', 'Just list all streams and exit')
   .option('--type-latest', '(DEFAULT) start reading any new data (LATEST)')
   .option('--type-oldest', 'start reading from the oldest data (TRIM_HORIZON)')
   .option('--type-at <sequence_number>', 'start reading from this sequence number (AT_SEQUENCE_NUMBER)')
   .option('--type-after <sequence_number>', 'start reading after this sequence number (AFTER_SEQUENCE_NUMBER)')
   .option('--type-timestamp <timestamp>', 'start reading after this time (units: epoch seconds) (AT_TIMESTAMP)')
   .action((streamName) => {
+    if (program.list) {
+      // Hack program.args to be empty so the getStreams block below will run instead
+      program.args = []
+      return
+    }
     const options = {}
     if (program.typeTimestamp) {
       options.ShardIteratorType = 'AT_TIMESTAMP'

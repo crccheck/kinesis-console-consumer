@@ -26,21 +26,16 @@ function getShardId (streamName) {
 }
 
 function getShardIterator (streamName, shardId, options) {
-  return new Promise((resolve, reject) => {
-    const params = Object.assign({
-      ShardId: shardId,
-      ShardIteratorType: 'LATEST',
-      StreamName: streamName,
-    }, options || {})
-    kinesis.getShardIterator(params, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        debug('getShardIterator got iterator id: %s', data.ShardIterator)
-        resolve(data.ShardIterator)
-      }
+  const params = Object.assign({
+    ShardId: shardId,
+    ShardIteratorType: 'LATEST',
+    StreamName: streamName,
+  }, options || {})
+  return kinesis.getShardIterator(params).promise()
+    .then((data) => {
+      debug('getShardIterator got iterator id: %s', data.ShardIterator)
+      return data.ShardIterator
     })
-  })
 }
 
 function readShard (shardIterator) {

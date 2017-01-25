@@ -98,8 +98,7 @@ describe('main', () => {
 
   describe('getShardIterator', () => {
     it('gets shard iterator', () => {
-      AWS.Kinesis.prototype.getShardIterator = (params, cb) =>
-        cb(undefined, {ShardIterator: 'shard iterator'})
+      AWS.Kinesis.prototype.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardIterator()
         .then((data) => {
@@ -108,8 +107,7 @@ describe('main', () => {
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.getShardIterator = (params, cb) =>
-        cb('lol error')
+      AWS.Kinesis.prototype.getShardIterator = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardIterator()
         .then((data) => {

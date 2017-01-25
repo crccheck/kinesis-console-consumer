@@ -73,7 +73,7 @@ module.exports._getShardIterator = getShardIterator
 module.exports._readShard = readShard
 
 module.exports.main = function (streamName, getShardIteratorOptions) {
-  getShardId(streamName)
+  return getShardId(streamName)
   .then((shardIds) => {
     const shardIterators = shardIds.map((shardId) =>
       getShardIterator(streamName, shardId, getShardIteratorOptions))

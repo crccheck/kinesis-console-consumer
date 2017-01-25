@@ -149,4 +149,15 @@ describe('main', () => {
       clock.restore()
     })
   })
+
+  describe('main', () => {
+    it('logs when there is an error', () => {
+      AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main.main('stream name', {})
+        .then(() => {
+          assert.equal(console.log.args[0][0], 'lol error')
+        })
+    })
+  })
 })

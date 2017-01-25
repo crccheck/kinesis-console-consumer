@@ -44,6 +44,7 @@ function readShard (shardIterator) {
     ShardIterator: shardIterator,
     Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
   }
+  // Not written using Promises because they make it harder to keep the program alive here
   kinesis.getRecords(params, (err, data) => {
     if (err) console.log(err, err.stack)
     else {
@@ -55,7 +56,6 @@ function readShard (shardIterator) {
         return
       }
 
-      // Putting something on the next tick will prevent the program from finishing
       setTimeout(function () {
         readShard(data.NextShardIterator)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html

@@ -51,7 +51,7 @@ describe('main', () => {
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
-          assert.strictEqual(data, 'shard id')
+          assert.ok(false, 'This should never run')
         })
         .catch((err) => {
           assert.strictEqual(err, 'No shards!')
@@ -64,7 +64,7 @@ describe('main', () => {
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
-          assert.strictEqual(data, 'shard id')
+          assert.deepEqual(data, ['shard id'])
         })
     })
 

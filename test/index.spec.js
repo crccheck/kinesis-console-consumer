@@ -4,6 +4,23 @@ const assert = require('assert')
 const proxyquire = require('proxyquire').noCallThru()
 const sinon = require('sinon')
 
+// HELPERS
+//////////
+
+// Convenience wrapper around Promise to reduce test boilerplate
+const AWSPromise = {
+  resolve: (value) => {
+    return () => ({
+      promise: () => Promise.resolve(value),
+    })
+  },
+  reject: (value) => {
+    return () => ({
+      promise: () => Promise.reject(value),
+    })
+  },
+}
+
 
 describe('main', () => {
   let AWS
@@ -23,7 +40,7 @@ describe('main', () => {
 
   describe('getStreams', () => {
     it('returns data from AWS', () => {
-      AWS.Kinesis.prototype.listStreams = () => ({promise: () => Promise.resolve('dat data')})
+      AWS.Kinesis.prototype.listStreams = AWSPromise.resolve('dat data')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       main.getStreams()
         .then((data) => {
@@ -32,7 +49,7 @@ describe('main', () => {
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.listStreams = () => ({promise: () => Promise.reject('lol error')})
+      AWS.Kinesis.prototype.listStreams = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main.getStreams()
         .then((data) => {

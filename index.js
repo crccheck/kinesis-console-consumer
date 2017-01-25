@@ -11,23 +11,18 @@ function getStreams () {
 }
 
 function getShardId (streamName) {
-  return new Promise((resolve, reject) => {
-    const params = {
-      StreamName: streamName,
-    }
-    kinesis.describeStream(params, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        if (data.StreamDescription.Shards.length) {
-          debug('getShardId found %d shards', data.StreamDescription.Shards.length)
-          resolve(data.StreamDescription.Shards.map((x) => x.ShardId))
-        } else {
-          reject('No shards!')
-        }
+  const params = {
+    StreamName: streamName,
+  }
+  return kinesis.describeStream(params).promise()
+    .then((data) => {
+      if (!data.StreamDescription.Shards.length) {
+        throw new Error('No shards!')
       }
+
+      debug('getShardId found %d shards', data.StreamDescription.Shards.length)
+      return data.StreamDescription.Shards.map((x) => x.ShardId)
     })
-  })
 }
 
 function getShardIterator (streamName, shardId, options) {

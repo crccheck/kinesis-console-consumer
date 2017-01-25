@@ -63,21 +63,19 @@ describe('main', () => {
 
   describe('getShardId', () => {
     it('throws when there are no shards', () => {
-      AWS.Kinesis.prototype.describeStream = (params, cb) =>
-      cb(undefined, {StreamDescription: {Shards: []}})
+      AWS.Kinesis.prototype.describeStream = AWSPromise.resolve({StreamDescription: {Shards: []}})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
           assert.ok(false, 'This should never run')
         })
         .catch((err) => {
-          assert.strictEqual(err, 'No shards!')
+          assert.strictEqual(err.message, 'No shards!')
         })
     })
 
     it('gets shard id', () => {
-      AWS.Kinesis.prototype.describeStream = (params, cb) =>
-        cb(undefined, {StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+      AWS.Kinesis.prototype.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
@@ -86,8 +84,7 @@ describe('main', () => {
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.describeStream = (params, cb) =>
-        cb('lol error')
+      AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {

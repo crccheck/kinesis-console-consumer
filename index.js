@@ -7,16 +7,7 @@ const kinesis = new AWS.Kinesis()
 
 
 function getStreams () {
-  return new Promise((resolve, reject) => {
-    kinesis.listStreams({}, (err, data) => {
-      if (err) {
-        console.error(err)
-        reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
+  return kinesis.listStreams({}).promise()
 }
 
 function getShardId (streamName) {

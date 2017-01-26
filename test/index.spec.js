@@ -4,6 +4,23 @@ const assert = require('assert')
 const proxyquire = require('proxyquire').noCallThru()
 const sinon = require('sinon')
 
+// HELPERS
+//////////
+
+// Convenience wrapper around Promise to reduce test boilerplate
+const AWSPromise = {
+  resolve: (value) => {
+    return () => ({
+      promise: () => Promise.resolve(value),
+    })
+  },
+  reject: (value) => {
+    return () => ({
+      promise: () => Promise.reject(value),
+    })
+  },
+}
+
 
 describe('main', () => {
   let AWS
@@ -23,7 +40,7 @@ describe('main', () => {
 
   describe('getStreams', () => {
     it('returns data from AWS', () => {
-      AWS.Kinesis.prototype.listStreams = (params, cb) => cb(undefined, 'dat data')
+      AWS.Kinesis.prototype.listStreams = AWSPromise.resolve('dat data')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       main.getStreams()
         .then((data) => {
@@ -32,7 +49,7 @@ describe('main', () => {
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.listStreams = (params, cb) => cb('lol error')
+      AWS.Kinesis.prototype.listStreams = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main.getStreams()
         .then((data) => {
@@ -46,21 +63,19 @@ describe('main', () => {
 
   describe('getShardId', () => {
     it('throws when there are no shards', () => {
-      AWS.Kinesis.prototype.describeStream = (params, cb) =>
-      cb(undefined, {StreamDescription: {Shards: []}})
+      AWS.Kinesis.prototype.describeStream = AWSPromise.resolve({StreamDescription: {Shards: []}})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
           assert.ok(false, 'This should never run')
         })
         .catch((err) => {
-          assert.strictEqual(err, 'No shards!')
+          assert.strictEqual(err.message, 'No shards!')
         })
     })
 
     it('gets shard id', () => {
-      AWS.Kinesis.prototype.describeStream = (params, cb) =>
-        cb(undefined, {StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+      AWS.Kinesis.prototype.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
@@ -69,8 +84,7 @@ describe('main', () => {
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.describeStream = (params, cb) =>
-        cb('lol error')
+      AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardId()
         .then((data) => {
@@ -84,8 +98,7 @@ describe('main', () => {
 
   describe('getShardIterator', () => {
     it('gets shard iterator', () => {
-      AWS.Kinesis.prototype.getShardIterator = (params, cb) =>
-        cb(undefined, {ShardIterator: 'shard iterator'})
+      AWS.Kinesis.prototype.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardIterator()
         .then((data) => {
@@ -94,8 +107,7 @@ describe('main', () => {
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.getShardIterator = (params, cb) =>
-        cb('lol error')
+      AWS.Kinesis.prototype.getShardIterator = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})
       return main._getShardIterator()
         .then((data) => {
@@ -135,6 +147,17 @@ describe('main', () => {
       clock.tick(10000)  // A number bigger than the idle time
       assert.strictEqual(getNextIterator.callCount, 2)
       clock.restore()
+    })
+  })
+
+  describe('main', () => {
+    it('logs when there is an error', () => {
+      AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
+      const main = proxyquire('../index', {'aws-sdk': AWS})
+      return main.main('stream name', {})
+        .then(() => {
+          assert.equal(console.log.args[0][0], 'lol error')
+        })
     })
   })
 })

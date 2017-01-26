@@ -7,54 +7,35 @@ const kinesis = new AWS.Kinesis()
 
 
 function getStreams () {
-  return new Promise((resolve, reject) => {
-    kinesis.listStreams({}, (err, data) => {
-      if (err) {
-        console.error(err)
-        reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
+  return kinesis.listStreams({}).promise()
 }
 
 function getShardId (streamName) {
-  return new Promise((resolve, reject) => {
-    const params = {
-      StreamName: streamName,
-    }
-    kinesis.describeStream(params, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        if (data.StreamDescription.Shards.length) {
-          debug('getShardId found %d shards', data.StreamDescription.Shards.length)
-          resolve(data.StreamDescription.Shards.map((x) => x.ShardId))
-        } else {
-          reject('No shards!')
-        }
+  const params = {
+    StreamName: streamName,
+  }
+  return kinesis.describeStream(params).promise()
+    .then((data) => {
+      if (!data.StreamDescription.Shards.length) {
+        throw new Error('No shards!')
       }
+
+      debug('getShardId found %d shards', data.StreamDescription.Shards.length)
+      return data.StreamDescription.Shards.map((x) => x.ShardId)
     })
-  })
 }
 
 function getShardIterator (streamName, shardId, options) {
-  return new Promise((resolve, reject) => {
-    const params = Object.assign({
-      ShardId: shardId,
-      ShardIteratorType: 'LATEST',
-      StreamName: streamName,
-    }, options || {})
-    kinesis.getShardIterator(params, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        debug('getShardIterator got iterator id: %s', data.ShardIterator)
-        resolve(data.ShardIterator)
-      }
+  const params = Object.assign({
+    ShardId: shardId,
+    ShardIteratorType: 'LATEST',
+    StreamName: streamName,
+  }, options || {})
+  return kinesis.getShardIterator(params).promise()
+    .then((data) => {
+      debug('getShardIterator got iterator id: %s', data.ShardIterator)
+      return data.ShardIterator
     })
-  })
 }
 
 function readShard (shardIterator) {
@@ -63,6 +44,7 @@ function readShard (shardIterator) {
     ShardIterator: shardIterator,
     Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
   }
+  // Not written using Promises because they make it harder to keep the program alive here
   kinesis.getRecords(params, (err, data) => {
     if (err) console.log(err, err.stack)
     else {
@@ -74,7 +56,6 @@ function readShard (shardIterator) {
         return
       }
 
-      // Putting something on the next tick will prevent the program from finishing
       setTimeout(function () {
         readShard(data.NextShardIterator)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
@@ -92,7 +73,7 @@ module.exports._getShardIterator = getShardIterator
 module.exports._readShard = readShard
 
 module.exports.main = function (streamName, getShardIteratorOptions) {
-  getShardId(streamName)
+  return getShardId(streamName)
   .then((shardIds) => {
     const shardIterators = shardIds.map((shardId) =>
       getShardIterator(streamName, shardId, getShardIteratorOptions))

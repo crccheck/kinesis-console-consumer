@@ -1,9 +1,11 @@
 'use strict'
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
+const { Readable } = require('stream')
 const AWS = require('aws-sdk')
 const debug = require('debug')('kinesis-console-consumer')
 
 const kinesis = new AWS.Kinesis()
+const rs = new Readable()
 
 
 function getStreams () {
@@ -38,6 +40,7 @@ function getShardIterator (streamName, shardId, options) {
     })
 }
 
+rs._read = () => {}
 function readShard (shardIterator) {
   debug('readShard starting from %s', shardIterator)
   const params = {
@@ -49,7 +52,7 @@ function readShard (shardIterator) {
     if (err) console.log(err, err.stack)
     else {
       data.Records.forEach((x) => {
-        console.log(x.Data.toString())
+        rs.push(x.Data.toString())
       })
       if (!data.NextShardIterator) {
         debug('readShard.closed %s', shardIterator)
@@ -67,12 +70,13 @@ function readShard (shardIterator) {
 // EXPORTS
 //////////
 
-module.exports.getStreams = getStreams
-module.exports._getShardId = getShardId
-module.exports._getShardIterator = getShardIterator
-module.exports._readShard = readShard
+exports.getStreams = getStreams
+exports._getShardId = getShardId
+exports._getShardIterator = getShardIterator
+exports._readShard = readShard
 
-module.exports.main = function (streamName, getShardIteratorOptions) {
+exports.rs = rs
+exports.main = function (streamName, getShardIteratorOptions) {
   return getShardId(streamName)
   .then((shardIds) => {
     const shardIterators = shardIds.map((shardId) =>

@@ -44,6 +44,7 @@ program
       options.ShardIteratorType = 'LATEST'
     }
     index.main(streamName, options)
+    index.rs.pipe(process.stdout)
   })
   .parse(process.argv)
 

@@ -5,6 +5,7 @@ const AWS = require('aws-sdk')
 const debug = require('debug')('kinesis-console-consumer')
 
 const kinesis = new AWS.Kinesis()
+// is this objectMode since we get whole objects at a time?
 const rs = new Readable()
 
 
@@ -49,21 +50,25 @@ function readShard (shardIterator) {
   }
   // Not written using Promises because they make it harder to keep the program alive here
   kinesis.getRecords(params, (err, data) => {
-    if (err) console.log(err, err.stack)
-    else {
-      data.Records.forEach((x) => {
-        rs.push(x.Data.toString())
-      })
-      if (!data.NextShardIterator) {
-        debug('readShard.closed %s', shardIterator)
-        return
-      }
-
-      setTimeout(function () {
-        readShard(data.NextShardIterator)
-        // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
-      }, 2000)
+    if (err) {
+      rs.emit('error', err)
+      console.log(err, err.stack)
+      return
     }
+
+    data.Records.forEach((x) => {
+      rs.push(x.Data.toString(), 'utf8')
+    })
+    if (!data.NextShardIterator) {
+      debug('readShard.closed %s', shardIterator)
+      // We can't rs.end() because there may be multiple shards getting read
+      return
+    }
+
+    setTimeout(function () {
+      readShard(data.NextShardIterator)
+      // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
+    }, 2000)
   })
 }
 

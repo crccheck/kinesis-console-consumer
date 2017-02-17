@@ -5,8 +5,6 @@ const AWS = require('aws-sdk')
 const debug = require('debug')('kinesis-console-consumer')
 
 const kinesis = new AWS.Kinesis()
-// is this objectMode since we get whole objects at a time?
-const rs = new Readable()
 
 
 function getStreams () {
@@ -41,36 +39,71 @@ function getShardIterator (streamName, shardId, options) {
     })
 }
 
-rs._read = () => {}
-function readShard (shardIterator) {
-  debug('readShard starting from %s', shardIterator)
-  const params = {
-    ShardIterator: shardIterator,
-    Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
+class KStream extends Readable {
+  constructor (streamName, options) {
+    // is this objectMode since we get whole objects at a time?
+    super({})
+    this._started = false  // TODO this is probably built into Streams
+    this._streamName = streamName
+    this._shardIteratorOptions = options
   }
-  // Not written using Promises because they make it harder to keep the program alive here
-  kinesis.getRecords(params, (err, data) => {
-    if (err) {
-      rs.emit('error', err)
-      console.log(err, err.stack)
-      return
-    }
 
-    data.Records.forEach((x) => {
-      rs.push(x.Data.toString(), 'utf8')
+  _startKinesis (streamName, getShardIteratorOptions) {
+    return getShardId(streamName)
+    .then((shardIds) => {
+      const shardIterators = shardIds.map((shardId) =>
+        getShardIterator(streamName, shardId, getShardIteratorOptions))
+      return Promise.all(shardIterators)
     })
-    if (!data.NextShardIterator) {
-      debug('readShard.closed %s', shardIterator)
-      // We can't rs.end() because there may be multiple shards getting read
+    .then((shardIterators) => {
+      shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
+    })
+    .catch((err) => {
+      this.emit('error', err)
+      console.log(err, err.stack)
+    })
+  }
+
+  _read (size) {
+    if (this._started) {
       return
     }
 
-    setTimeout(function () {
-      readShard(data.NextShardIterator)
-      // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
-    }, 2000)
-  })
+    this._startKinesis(this._streamName, this._shardIteratorOptions)
+    this._started = true
+  }
+
+  readShard (shardIterator) {
+    debug('readShard starting from %s', shardIterator)
+    const params = {
+      ShardIterator: shardIterator,
+      Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
+    }
+    // Not written using Promises because they make it harder to keep the program alive here
+    kinesis.getRecords(params, (err, data) => {
+      if (err) {
+        this.emit('error', err)
+        console.log(err, err.stack)
+        return
+      }
+
+      data.Records.forEach((x) => {
+        this.push(x.Data.toString(), 'utf8')
+      })
+      if (!data.NextShardIterator) {
+        debug('readShard.closed %s', shardIterator)
+        // We can't rs.end() because there may be multiple shards getting read
+        return
+      }
+
+      setTimeout(() => {
+        this.readShard(data.NextShardIterator)
+        // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
+      }, 2000)
+    })
+  }
 }
+
 
 // EXPORTS
 //////////
@@ -78,19 +111,5 @@ function readShard (shardIterator) {
 exports.getStreams = getStreams
 exports._getShardId = getShardId
 exports._getShardIterator = getShardIterator
-exports._readShard = readShard
 
-exports.rs = rs
-exports.main = function (streamName, getShardIteratorOptions) {
-  return getShardId(streamName)
-  .then((shardIds) => {
-    const shardIterators = shardIds.map((shardId) =>
-      getShardIterator(streamName, shardId, getShardIteratorOptions))
-    return Promise.all(shardIterators)
-  })
-  .then((shardIterators) => {
-    shardIterators.forEach((shardIterator) => readShard(shardIterator))
-    // return Promise.all(shardIterators.map((shardIterator) => readShard(shardIterator)))
-  })
-  .catch((err) => console.log(err, err.stack))
-}
+exports.KStream = KStream

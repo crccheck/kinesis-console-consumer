@@ -43,8 +43,8 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    index.main(streamName, options)
-    index.rs.pipe(process.stdout)
+    const thing = new index.KStream(streamName, options)
+    thing.pipe(process.stdout)
   })
   .parse(process.argv)
 

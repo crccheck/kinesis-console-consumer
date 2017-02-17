@@ -70,7 +70,10 @@ class KStream extends Readable {
     }
 
     this._startKinesis(this._streamName, this._shardIteratorOptions)
-    this._started = true
+      .then(() => {
+        this._started = 2
+      })
+    this._started = 1
   }
 
   readShard (shardIterator) {

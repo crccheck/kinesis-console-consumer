@@ -30,8 +30,6 @@ describe('main', () => {
   beforeEach(() => {
     client = {}
     sandbox = sinon.sandbox.create()
-    sandbox.stub(console, 'log')
-    sandbox.stub(console, 'error')
   })
 
   afterEach(() => {

@@ -11,12 +11,12 @@ const main = require('../index')
 // Convenience wrapper around Promise to reduce test boilerplate
 const AWSPromise = {
   resolve: (value) => {
-    return () => ({
+    return sinon.stub().returns({
       promise: () => Promise.resolve(value),
     })
   },
   reject: (value) => {
-    return () => ({
+    return sinon.stub().returns({
       promise: () => Promise.reject(value),
     })
   },
@@ -119,10 +119,9 @@ describe('main', () => {
     })
 
     describe('_startKinesis', () => {
-      it.only('passes shard iterator options', () => {
+      it('passes shard iterator options', () => {
         client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
-        // client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
-        client.getShardIterator = sinon.stub().returns({promise: () => Promise.resolve({})})
+        client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
         sandbox.stub(main.KinesisStreamReader.prototype, 'readShard')
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 

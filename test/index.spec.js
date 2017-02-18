@@ -122,7 +122,7 @@ describe('main', () => {
 
   describe('KinesisStreamReader', () => {
     it('constructor sets arguments', () => {
-      const { KinesisStreamReader } = require('../index')
+      const KinesisStreamReader = require('../index').KinesisStreamReader
       const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
       assert.ok(reader)
       assert.equal(reader._streamName, 'stream name')
@@ -132,7 +132,7 @@ describe('main', () => {
     describe('_startKinesis', () => {
       it('emits error when there is an error', () => {
         AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
         const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
 
         reader.once('error', (err) => {
@@ -144,7 +144,7 @@ describe('main', () => {
 
       xit('logs when there is an error', () => {
         AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
         const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
 
         return reader._startKinesis('stream name', {})
@@ -155,7 +155,7 @@ describe('main', () => {
     })
 
     it('_read only calls _startKinesis once', () => {
-      const { KinesisStreamReader } = require('../index')
+      const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
       const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
       sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
 
@@ -168,7 +168,7 @@ describe('main', () => {
     describe('readShard', () => {
       it('exits when there is an error', () => {
         AWS.Kinesis.prototype.getRecords = (params, cb) => cb('mock error')
-        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
         const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
 
         reader.once('error', (err) => {
@@ -180,7 +180,7 @@ describe('main', () => {
 
       it('exits when shard is closed', () => {
         AWS.Kinesis.prototype.getRecords = (params, cb) => cb(undefined, {Records: []})
-        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
         const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
 
         reader.once('error', () => {
@@ -197,7 +197,7 @@ describe('main', () => {
         getNextIterator.onSecondCall().returns(undefined)
         AWS.Kinesis.prototype.getRecords = (params, cb) =>
           cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
-        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
         const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
 
         reader.once('error', () => {

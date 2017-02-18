@@ -1,6 +1,6 @@
 'use strict'
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
-const { Readable } = require('stream')
+const Readable = require('stream').Readable
 const AWS = require('aws-sdk')
 const debug = require('debug')('kinesis-console-consumer')
 

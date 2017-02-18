@@ -50,18 +50,17 @@ class KinesisStreamReader extends Readable {
 
   _startKinesis () {
     return getShardId(this._streamName)
-    .then((shardIds) => {
-      const shardIterators = shardIds.map((shardId) =>
-        getShardIterator(this._streamName, shardId, this._shardIteratorOptions))
-      return Promise.all(shardIterators)
-    })
-    .then((shardIterators) => {
-      shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
-    })
-    .catch((err) => {
-      this.emit('error', err)
-      console.log(err, err.stack)
-    })
+      .then((shardIds) => {
+        const shardIterators = shardIds.map((shardId) =>
+          getShardIterator(this._streamName, shardId, this._shardIteratorOptions))
+        return Promise.all(shardIterators)
+      })
+      .then((shardIterators) => {
+        shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
+      })
+      .catch((err) => {
+        this.emit('error', err) || console.log(err, err.stack)
+      })
   }
 
   _read (size) {
@@ -72,6 +71,9 @@ class KinesisStreamReader extends Readable {
     this._startKinesis()
       .then(() => {
         this._started = 2
+      })
+      .catch((err) => {
+        this.emit('error', err) || console.log(err, err.stack)
       })
     this._started = 1
   }
@@ -85,8 +87,7 @@ class KinesisStreamReader extends Readable {
     // Not written using Promises because they make it harder to keep the program alive here
     kinesis.getRecords(params, (err, data) => {
       if (err) {
-        this.emit('error', err)
-        console.log(err, err.stack)
+        this.emit('error', err) || console.log(err, err.stack)
         return
       }
 

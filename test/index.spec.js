@@ -129,7 +129,24 @@ describe('main', () => {
       assert.equal(reader._shardIteratorOptions.foo, 'bar')
     })
 
-    it('read only calls _startKinesis once', () => {
+    describe('_startKinesis', () => {
+      it('emits error when there is an error', () => {
+        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
+        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+
+        reader.once('error', (err) => {
+          assert.equal(err, 'lol error')
+        })
+
+        return reader._startKinesis('stream name', {})
+          .then(() => {
+            assert.equal(console.log.args[0][0], 'lol error')
+          })
+      })
+    })
+
+    it('_read only calls _startKinesis once', () => {
       const { KinesisStreamReader } = require('../index')
       const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
       sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
@@ -185,23 +202,6 @@ describe('main', () => {
         clock.tick(10000)  // A number bigger than the idle time
         assert.strictEqual(getNextIterator.callCount, 2)
         clock.restore()
-      })
-    })
-
-    describe('_startKinesis', () => {
-      it('emits error when there is an error', () => {
-        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
-        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
-
-        reader.once('error', (err) => {
-          assert.equal(err, 'lol error')
-        })
-
-        return reader._startKinesis('stream name', {})
-          .then(() => {
-            assert.equal(console.log.args[0][0], 'lol error')
-          })
       })
     })
   })

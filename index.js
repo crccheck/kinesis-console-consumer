@@ -63,21 +63,6 @@ class KinesisStreamReader extends Readable {
       })
   }
 
-  _read (size) {
-    if (this._started) {
-      return
-    }
-
-    this._startKinesis()
-      .then(() => {
-        this._started = 2
-      })
-      .catch((err) => {
-        this.emit('error', err) || console.log(err, err.stack)
-      })
-    this._started = 1
-  }
-
   readShard (shardIterator) {
     debug('readShard starting from %s', shardIterator)
     const params = {
@@ -105,6 +90,21 @@ class KinesisStreamReader extends Readable {
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
       }, 2000)
     })
+  }
+
+  _read (size) {
+    if (this._started) {
+      return
+    }
+
+    this._startKinesis()
+      .then(() => {
+        this._started = 2
+      })
+      .catch((err) => {
+        this.emit('error', err) || console.log(err, err.stack)
+      })
+    this._started = 1
   }
 }
 

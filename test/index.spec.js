@@ -154,17 +154,6 @@ describe('main', () => {
       })
     })
 
-    it('_read only calls _startKinesis once', () => {
-      const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-      const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
-      sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
-
-      reader._read()
-      reader._read()
-
-      assert.equal(reader._startKinesis.callCount, 1)
-    })
-
     describe('readShard', () => {
       it('exits when there is an error', () => {
         AWS.Kinesis.prototype.getRecords = (params, cb) => cb('mock error')
@@ -211,6 +200,17 @@ describe('main', () => {
         assert.strictEqual(getNextIterator.callCount, 2)
         clock.restore()
       })
+    })
+
+    it('_read only calls _startKinesis once', () => {
+      const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+      const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+      sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
+
+      reader._read()
+      reader._read()
+
+      assert.equal(reader._startKinesis.callCount, 1)
     })
   })
 })

@@ -140,6 +140,14 @@ describe('main', () => {
         })
 
         return reader._startKinesis('stream name', {})
+      })
+
+      xit('logs when there is an error', () => {
+        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
+        const { KinesisStreamReader } = proxyquire('../index', {'aws-sdk': AWS})
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+
+        return reader._startKinesis('stream name', {})
           .then(() => {
             assert.equal(console.log.args[0][0], 'lol error')
           })

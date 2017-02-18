@@ -115,10 +115,23 @@ describe('main', () => {
       const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
       assert.ok(reader)
       assert.equal(reader._streamName, 'stream name')
-      assert.equal(reader._shardIteratorOptions.foo, 'bar')
+      assert.equal(reader.options.foo, 'bar')
     })
 
     describe('_startKinesis', () => {
+      it.only('passes shard iterator options', () => {
+        client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+        // client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
+        client.getShardIterator = sinon.stub().returns({promise: () => Promise.resolve({})})
+        sandbox.stub(main.KinesisStreamReader.prototype, 'readShard')
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+
+        return reader._startKinesis().then(() => {
+          const params = client.getShardIterator.args[0][0]
+          console.log(params)
+        })
+      })
+
       it('emits error when there is an error', () => {
         client.describeStream = AWSPromise.reject('lol error')
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})

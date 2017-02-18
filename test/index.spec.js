@@ -119,7 +119,7 @@ describe('main', () => {
     })
   })
 
-  describe('readShard', () => {
+  xdescribe('readShard', () => {
     it('exits when there is an error', () => {
       AWS.Kinesis.prototype.getRecords = (params, cb) =>
         cb('hi')
@@ -150,7 +150,7 @@ describe('main', () => {
     })
   })
 
-  describe('main', () => {
+  xdescribe('main', () => {
     it('logs when there is an error', () => {
       AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
       const main = proxyquire('../index', {'aws-sdk': AWS})

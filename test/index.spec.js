@@ -24,18 +24,19 @@ const AWSPromise = {
 
 describe('main', () => {
   let AWS
+  let sandbox
 
   beforeEach(() => {
-    sinon.stub(console, 'log')
-    sinon.stub(console, 'error')
+    sandbox = sinon.sandbox.create()
+    sandbox.stub(console, 'log')
+    sandbox.stub(console, 'error')
     AWS = {
       Kinesis: class {},
     }
   })
 
   afterEach(() => {
-    console.error.restore()
-    console.log.restore()
+    sandbox.restore()
   })
 
   describe('getStreams', () => {
@@ -119,45 +120,97 @@ describe('main', () => {
     })
   })
 
-  describe('readShard', () => {
-    it('exits when there is an error', () => {
-      AWS.Kinesis.prototype.getRecords = (params, cb) =>
-        cb('hi')
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      main._readShard()
+  describe('KinesisStreamReader', () => {
+    it('constructor sets arguments', () => {
+      const KinesisStreamReader = require('../index').KinesisStreamReader
+      const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+      assert.ok(reader)
+      assert.equal(reader._streamName, 'stream name')
+      assert.equal(reader._shardIteratorOptions.foo, 'bar')
     })
 
-    it('exits when shard is closed', () => {
-      AWS.Kinesis.prototype.getRecords = (params, cb) =>
-        cb(undefined, {Records: []})
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      main._readShard()
-    })
+    describe('_startKinesis', () => {
+      it('emits error when there is an error', () => {
+        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
 
-    it('continues to read open shard', () => {
-      const clock = sinon.useFakeTimers()
-      const getNextIterator = sinon.stub()
-      getNextIterator.onFirstCall().returns('shard iterator')
-      getNextIterator.onSecondCall().returns(undefined)
-      AWS.Kinesis.prototype.getRecords = (params, cb) =>
-        cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      main._readShard()
-      assert.strictEqual(getNextIterator.callCount, 1)
-      clock.tick(10000)  // A number bigger than the idle time
-      assert.strictEqual(getNextIterator.callCount, 2)
-      clock.restore()
-    })
-  })
-
-  describe('main', () => {
-    it('logs when there is an error', () => {
-      AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main.main('stream name', {})
-        .then(() => {
-          assert.equal(console.log.args[0][0], 'lol error')
+        reader.once('error', (err) => {
+          assert.equal(err, 'lol error')
         })
+
+        return reader._startKinesis('stream name', {})
+      })
+
+      xit('logs when there is an error', () => {
+        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+
+        return reader._startKinesis('stream name', {})
+          .then(() => {
+            assert.equal(console.log.args[0][0], 'lol error')
+          })
+      })
+    })
+
+    describe('readShard', () => {
+      it('exits when there is an error', () => {
+        AWS.Kinesis.prototype.getRecords = (params, cb) => cb('mock error')
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+
+        reader.once('error', (err) => {
+          assert.equal(err, 'mock error')
+        })
+
+        reader.readShard()
+      })
+
+      it('exits when shard is closed', () => {
+        AWS.Kinesis.prototype.getRecords = (params, cb) => cb(undefined, {Records: []})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+
+        reader.once('error', () => {
+          assert.ok(false, 'this should never run')
+        })
+
+        reader.readShard()
+      })
+
+      it('continues to read open shard', () => {
+        const clock = sinon.useFakeTimers()
+        const getNextIterator = sinon.stub()
+        getNextIterator.onFirstCall().returns('shard iterator')
+        getNextIterator.onSecondCall().returns(undefined)
+        AWS.Kinesis.prototype.getRecords = (params, cb) =>
+          cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
+        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+
+        reader.once('error', () => {
+          assert.ok(false, 'this should never run')
+        })
+
+        reader.readShard()
+
+        assert.strictEqual(getNextIterator.callCount, 1)
+        clock.tick(10000)  // A number bigger than the idle time
+        assert.strictEqual(getNextIterator.callCount, 2)
+        clock.restore()
+      })
+    })
+
+    it('_read only calls _startKinesis once', () => {
+      const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
+      const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+      sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
+
+      reader._read()
+      reader._read()
+
+      assert.equal(reader._startKinesis.callCount, 1)
     })
   })
 })

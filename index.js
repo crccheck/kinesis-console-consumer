@@ -1,5 +1,6 @@
 'use strict'
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
+const Readable = require('stream').Readable
 const AWS = require('aws-sdk')
 const debug = require('debug')('kinesis-console-consumer')
 
@@ -38,50 +39,81 @@ function getShardIterator (streamName, shardId, options) {
     })
 }
 
-function readShard (shardIterator) {
-  debug('readShard starting from %s', shardIterator)
-  const params = {
-    ShardIterator: shardIterator,
-    Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
+class KinesisStreamReader extends Readable {
+  constructor (streamName, options) {
+    // is this objectMode since we get whole objects at a time?
+    super({})
+    this._started = false  // TODO this is probably built into Streams
+    this._streamName = streamName
+    this._shardIteratorOptions = options
   }
-  // Not written using Promises because they make it harder to keep the program alive here
-  kinesis.getRecords(params, (err, data) => {
-    if (err) console.log(err, err.stack)
-    else {
-      data.Records.forEach((x) => {
-        console.log(x.Data.toString())
+
+  _startKinesis () {
+    return getShardId(this._streamName)
+      .then((shardIds) => {
+        const shardIterators = shardIds.map((shardId) =>
+          getShardIterator(this._streamName, shardId, this._shardIteratorOptions))
+        return Promise.all(shardIterators)
       })
-      if (!data.NextShardIterator) {
-        debug('readShard.closed %s', shardIterator)
+      .then((shardIterators) => {
+        shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
+      })
+      .catch((err) => {
+        this.emit('error', err) || console.log(err, err.stack)
+      })
+  }
+
+  readShard (shardIterator) {
+    debug('readShard starting from %s', shardIterator)
+    const params = {
+      ShardIterator: shardIterator,
+      Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
+    }
+    // Not written using Promises because they make it harder to keep the program alive here
+    kinesis.getRecords(params, (err, data) => {
+      if (err) {
+        this.emit('error', err) || console.log(err, err.stack)
         return
       }
 
-      setTimeout(function () {
-        readShard(data.NextShardIterator)
+      data.Records.forEach((x) => {
+        this.push(x.Data.toString(), 'utf8')
+      })
+      if (!data.NextShardIterator) {
+        debug('readShard.closed %s', shardIterator)
+        // TODO this.end() when number of shards closed == number of shards being read
+        return
+      }
+
+      setTimeout(() => {
+        this.readShard(data.NextShardIterator)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
       }, 2000)
+    })
+  }
+
+  _read (size) {
+    if (this._started) {
+      return
     }
-  })
+
+    this._startKinesis()
+      .then(() => {
+        this._started = 2
+      })
+      .catch((err) => {
+        this.emit('error', err) || console.log(err, err.stack)
+      })
+    this._started = 1
+  }
 }
+
 
 // EXPORTS
 //////////
 
-module.exports.getStreams = getStreams
-module.exports._getShardId = getShardId
-module.exports._getShardIterator = getShardIterator
-module.exports._readShard = readShard
+exports.getStreams = getStreams
+exports._getShardId = getShardId
+exports._getShardIterator = getShardIterator
 
-module.exports.main = function (streamName, getShardIteratorOptions) {
-  return getShardId(streamName)
-  .then((shardIds) => {
-    const shardIterators = shardIds.map((shardId) =>
-      getShardIterator(streamName, shardId, getShardIteratorOptions))
-    return Promise.all(shardIterators)
-  })
-  .then((shardIterators) => {
-    shardIterators.forEach((shardIterator) => readShard(shardIterator))
-    // return Promise.all(shardIterators.map((shardIterator) => readShard(shardIterator)))
-  })
-  .catch((err) => console.log(err, err.stack))
-}
+exports.KinesisStreamReader = KinesisStreamReader

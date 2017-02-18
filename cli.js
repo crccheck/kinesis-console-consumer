@@ -43,7 +43,8 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    index.main(streamName, options)
+    const reader = new index.KinesisStreamReader(streamName, options)
+    reader.pipe(process.stdout)
   })
   .parse(process.argv)
 

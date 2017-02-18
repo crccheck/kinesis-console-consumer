@@ -39,7 +39,7 @@ function getShardIterator (streamName, shardId, options) {
     })
 }
 
-class KStream extends Readable {
+class KinesisStreamReader extends Readable {
   constructor (streamName, options) {
     // is this objectMode since we get whole objects at a time?
     super({})
@@ -48,11 +48,11 @@ class KStream extends Readable {
     this._shardIteratorOptions = options
   }
 
-  _startKinesis (streamName, getShardIteratorOptions) {
-    return getShardId(streamName)
+  _startKinesis () {
+    return getShardId(this._streamName)
     .then((shardIds) => {
       const shardIterators = shardIds.map((shardId) =>
-        getShardIterator(streamName, shardId, getShardIteratorOptions))
+        getShardIterator(this._streamName, shardId, this._shardIteratorOptions))
       return Promise.all(shardIterators)
     })
     .then((shardIterators) => {
@@ -69,7 +69,7 @@ class KStream extends Readable {
       return
     }
 
-    this._startKinesis(this._streamName, this._shardIteratorOptions)
+    this._startKinesis()
       .then(() => {
         this._started = 2
       })
@@ -95,7 +95,7 @@ class KStream extends Readable {
       })
       if (!data.NextShardIterator) {
         debug('readShard.closed %s', shardIterator)
-        // We can't rs.end() because there may be multiple shards getting read
+        // TODO this.end() when number of shards closed == number of shards being read
         return
       }
 
@@ -115,4 +115,4 @@ exports.getStreams = getStreams
 exports._getShardId = getShardId
 exports._getShardIterator = getShardIterator
 
-exports.KStream = KStream
+exports.KinesisStreamReader = KinesisStreamReader

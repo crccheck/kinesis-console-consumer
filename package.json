@@ -20,6 +20,7 @@
   "keywords": [
     "aws",
     "kinesis",
+    "stream",
     "cli"
   ],
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
@@ -28,7 +29,7 @@
     "aws-sdk": "^2.16.0",
     "commander": "^2.9.0",
     "debug": "^2.6.1",
-    "update-notifier": "^2.0.0"
+    "update-notifier": "^2.1.0"
   },
   "devDependencies": {
     "eslint": "^3.15.0",
@@ -37,7 +38,6 @@
     "eslint-plugin-standard": "^2.0.1",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
-    "proxyquire": "^1.7.11",
     "sinon": "^1.17.7"
   },
   "repository": {

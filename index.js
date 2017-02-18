@@ -1,21 +1,18 @@
 'use strict'
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
 const Readable = require('stream').Readable
-const AWS = require('aws-sdk')
 const debug = require('debug')('kinesis-console-consumer')
 
-const kinesis = new AWS.Kinesis()
 
-
-function getStreams () {
-  return kinesis.listStreams({}).promise()
+function getStreams (client) {
+  return client.listStreams({}).promise()
 }
 
-function getShardId (streamName) {
+function getShardId (client, streamName) {
   const params = {
     StreamName: streamName,
   }
-  return kinesis.describeStream(params).promise()
+  return client.describeStream(params).promise()
     .then((data) => {
       if (!data.StreamDescription.Shards.length) {
         throw new Error('No shards!')
@@ -26,13 +23,13 @@ function getShardId (streamName) {
     })
 }
 
-function getShardIterator (streamName, shardId, options) {
+function getShardIterator (client, streamName, shardId, options) {
   const params = Object.assign({
     ShardId: shardId,
     ShardIteratorType: 'LATEST',
     StreamName: streamName,
   }, options || {})
-  return kinesis.getShardIterator(params).promise()
+  return client.getShardIterator(params).promise()
     .then((data) => {
       debug('getShardIterator got iterator id: %s', data.ShardIterator)
       return data.ShardIterator
@@ -40,19 +37,20 @@ function getShardIterator (streamName, shardId, options) {
 }
 
 class KinesisStreamReader extends Readable {
-  constructor (streamName, options) {
+  constructor (client, streamName, options) {
     // is this objectMode since we get whole objects at a time?
     super({})
+    this.client = client
     this._started = false  // TODO this is probably built into Streams
     this._streamName = streamName
     this._shardIteratorOptions = options
   }
 
   _startKinesis () {
-    return getShardId(this._streamName)
+    return getShardId(this.client, this._streamName)
       .then((shardIds) => {
         const shardIterators = shardIds.map((shardId) =>
-          getShardIterator(this._streamName, shardId, this._shardIteratorOptions))
+          getShardIterator(this.client, this._streamName, shardId, this._shardIteratorOptions))
         return Promise.all(shardIterators)
       })
       .then((shardIterators) => {
@@ -70,7 +68,7 @@ class KinesisStreamReader extends Readable {
       Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
     }
     // Not written using Promises because they make it harder to keep the program alive here
-    kinesis.getRecords(params, (err, data) => {
+    this.client.getRecords(params, (err, data) => {
       if (err) {
         this.emit('error', err) || console.log(err, err.stack)
         return

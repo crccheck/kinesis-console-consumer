@@ -47,4 +47,15 @@ Display contents of a stream, "hello-world", starting from 15 minutes ago:
     kinesis-console-consumer 'hello-world' --type-timestamp "$(($(date +%s) - 900))"
 
 
+Usage as a package
+------------------
+
+Hey, you can import this module into your own project to use as Kinesis Stream
+Reader readable stream too!
+
+    const { KinesisStreamReader } = require('kinesis-console-consumer')
+    const reader = new KinesisStreamReader(streamName, options)
+    reader.pipe(yourDestinationHere)
+
+
   [Kafka quickstart]: http://kafka.apache.org/documentation.html#quickstart_consume

@@ -2,8 +2,11 @@
 'use strict'
 
 const fs = require('fs')
+
+const AWS = require('aws-sdk')
 const program = require('commander')
 const updateNotifier = require('update-notifier')
+
 const index = require('./')
 
 const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
@@ -43,7 +46,8 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    const reader = new index.KinesisStreamReader(streamName, options)
+    const client = new AWS.Kinesis()
+    const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)
   })
   .parse(process.argv)

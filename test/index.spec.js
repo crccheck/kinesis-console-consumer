@@ -1,8 +1,9 @@
 'use strict'
 
 const assert = require('assert')
-const proxyquire = require('proxyquire').noCallThru()
 const sinon = require('sinon')
+
+const main = require('../index')
 
 // HELPERS
 //////////
@@ -23,16 +24,14 @@ const AWSPromise = {
 
 
 describe('main', () => {
-  let AWS
+  let client
   let sandbox
 
   beforeEach(() => {
+    client = {}
     sandbox = sinon.sandbox.create()
     sandbox.stub(console, 'log')
     sandbox.stub(console, 'error')
-    AWS = {
-      Kinesis: class {},
-    }
   })
 
   afterEach(() => {
@@ -41,18 +40,16 @@ describe('main', () => {
 
   describe('getStreams', () => {
     it('returns data from AWS', () => {
-      AWS.Kinesis.prototype.listStreams = AWSPromise.resolve('dat data')
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      main.getStreams()
+      client.listStreams = AWSPromise.resolve('dat data')
+      main.getStreams(client)
         .then((data) => {
           assert.strictEqual(data, 'dat data')
         })
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.listStreams = AWSPromise.reject('lol error')
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main.getStreams()
+      client.listStreams = AWSPromise.reject('lol error')
+      return main.getStreams(client)
         .then((data) => {
           assert.strictEqual(true, false)
         })
@@ -64,9 +61,8 @@ describe('main', () => {
 
   describe('getShardId', () => {
     it('throws when there are no shards', () => {
-      AWS.Kinesis.prototype.describeStream = AWSPromise.resolve({StreamDescription: {Shards: []}})
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main._getShardId()
+      client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: []}})
+      return main._getShardId(client)
         .then((data) => {
           assert.ok(false, 'This should never run')
         })
@@ -76,18 +72,16 @@ describe('main', () => {
     })
 
     it('gets shard id', () => {
-      AWS.Kinesis.prototype.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main._getShardId()
+      client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+      return main._getShardId(client)
         .then((data) => {
           assert.deepEqual(data, ['shard id'])
         })
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main._getShardId()
+      client.describeStream = AWSPromise.reject('lol error')
+      return main._getShardId(client)
         .then((data) => {
           assert.strictEqual(true, false)
         })
@@ -99,18 +93,16 @@ describe('main', () => {
 
   describe('getShardIterator', () => {
     it('gets shard iterator', () => {
-      AWS.Kinesis.prototype.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main._getShardIterator()
+      client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
+      return main._getShardIterator(client)
         .then((data) => {
           assert.strictEqual(data, 'shard iterator')
         })
     })
 
     it('handles errors', () => {
-      AWS.Kinesis.prototype.getShardIterator = AWSPromise.reject('lol error')
-      const main = proxyquire('../index', {'aws-sdk': AWS})
-      return main._getShardIterator()
+      client.getShardIterator = AWSPromise.reject('lol error')
+      return main._getShardIterator(client)
         .then((data) => {
           assert.strictEqual(true, false)
         })
@@ -122,8 +114,7 @@ describe('main', () => {
 
   describe('KinesisStreamReader', () => {
     it('constructor sets arguments', () => {
-      const KinesisStreamReader = require('../index').KinesisStreamReader
-      const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+      const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
       assert.ok(reader)
       assert.equal(reader._streamName, 'stream name')
       assert.equal(reader._shardIteratorOptions.foo, 'bar')
@@ -131,9 +122,8 @@ describe('main', () => {
 
     describe('_startKinesis', () => {
       it('emits error when there is an error', () => {
-        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+        client.describeStream = AWSPromise.reject('lol error')
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         reader.once('error', (err) => {
           assert.equal(err, 'lol error')
@@ -143,9 +133,8 @@ describe('main', () => {
       })
 
       xit('logs when there is an error', () => {
-        AWS.Kinesis.prototype.describeStream = AWSPromise.reject('lol error')
-        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+        client.describeStream = AWSPromise.reject('lol error')
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         return reader._startKinesis('stream name', {})
           .then(() => {
@@ -156,9 +145,8 @@ describe('main', () => {
 
     describe('readShard', () => {
       it('exits when there is an error', () => {
-        AWS.Kinesis.prototype.getRecords = (params, cb) => cb('mock error')
-        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+        client.getRecords = (params, cb) => cb('mock error')
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         reader.once('error', (err) => {
           assert.equal(err, 'mock error')
@@ -168,9 +156,8 @@ describe('main', () => {
       })
 
       it('exits when shard is closed', () => {
-        AWS.Kinesis.prototype.getRecords = (params, cb) => cb(undefined, {Records: []})
-        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+        client.getRecords = (params, cb) => cb(undefined, {Records: []})
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         reader.once('error', () => {
           assert.ok(false, 'this should never run')
@@ -184,10 +171,9 @@ describe('main', () => {
         const getNextIterator = sinon.stub()
         getNextIterator.onFirstCall().returns('shard iterator')
         getNextIterator.onSecondCall().returns(undefined)
-        AWS.Kinesis.prototype.getRecords = (params, cb) =>
+        client.getRecords = (params, cb) =>
           cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
-        const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-        const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         reader.once('error', () => {
           assert.ok(false, 'this should never run')
@@ -203,8 +189,7 @@ describe('main', () => {
     })
 
     it('_read only calls _startKinesis once', () => {
-      const KinesisStreamReader = proxyquire('../index', {'aws-sdk': AWS}).KinesisStreamReader
-      const reader = new KinesisStreamReader('stream name', {foo: 'bar'})
+      const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
       sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
 
       reader._read()

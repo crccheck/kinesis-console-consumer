@@ -10,6 +10,7 @@ const updateNotifier = require('update-notifier')
 const index = require('./')
 
 const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
+const client = new AWS.Kinesis()
 
 program
   .version(pkg.version)
@@ -46,14 +47,15 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    const client = new AWS.Kinesis()
     const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)
   })
   .parse(process.argv)
 
 if (!program.args.length) {
-  index.getStreams().then((data) => console.log(data))
+  index.getStreams(client)
+    .then(console.log)
+    .catch(console.error)
 }
 
 updateNotifier({pkg}).notify()

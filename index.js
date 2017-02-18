@@ -50,7 +50,7 @@ class KinesisStreamReader extends Readable {
     return getShardId(this.client, this._streamName)
       .then((shardIds) => {
         const shardIterators = shardIds.map((shardId) =>
-          getShardIterator(this._streamName, shardId, this._shardIteratorOptions))
+          getShardIterator(this.client, this._streamName, shardId, this._shardIteratorOptions))
         return Promise.all(shardIterators)
       })
       .then((shardIterators) => {

@@ -53,8 +53,10 @@ Usage as a package
 Hey, you can import this module into your own project to use as Kinesis Stream
 Reader readable stream too!
 
+    const AWS = require('aws-sdk')
     const { KinesisStreamReader } = require('kinesis-console-consumer')
-    const reader = new KinesisStreamReader(streamName, options)
+    const client = AWS.Kinesis()
+    const reader = new KinesisStreamReader(client, streamName, options)
     reader.pipe(yourDestinationHere)
 
 

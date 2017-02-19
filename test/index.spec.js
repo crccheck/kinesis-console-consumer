@@ -193,14 +193,21 @@ describe('main', () => {
       it('continues to read open shard', () => {
         const clock = sinon.useFakeTimers()
         const getNextIterator = sinon.stub()
+        const record = {
+          Data: '',
+          SequenceNumber: 'seq-1',
+        }
         getNextIterator.onFirstCall().returns('shard-iterator-4')
         getNextIterator.onSecondCall().returns(undefined)
         client.getRecords = (params, cb) =>
-          cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
+          cb(undefined, {Records: [record], NextShardIterator: getNextIterator()})
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         reader.once('error', () => {
           assert.ok(false, 'this should never run')
+        })
+        reader.once('checkpoint', (seq) => {
+          assert.equal(seq, 'seq-1')
         })
 
         reader.readShard('shard-iterator-3')

@@ -11,12 +11,12 @@ const main = require('../index')
 // Convenience wrapper around Promise to reduce test boilerplate
 const AWSPromise = {
   resolve: (value) => {
-    return () => ({
+    return sinon.stub().returns({
       promise: () => Promise.resolve(value),
     })
   },
   reject: (value) => {
-    return () => ({
+    return sinon.stub().returns({
       promise: () => Promise.reject(value),
     })
   },
@@ -114,11 +114,33 @@ describe('main', () => {
     it('constructor sets arguments', () => {
       const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
       assert.ok(reader)
-      assert.equal(reader._streamName, 'stream name')
-      assert.equal(reader._shardIteratorOptions.foo, 'bar')
+      assert.equal(reader.streamName, 'stream name')
+      assert.equal(reader.options.foo, 'bar')
+      assert.equal(reader.options.interval, 2000)
     })
 
     describe('_startKinesis', () => {
+      it('passes shard iterator options ignoring extras', () => {
+        client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+        client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
+        sandbox.stub(main.KinesisStreamReader.prototype, 'readShard')
+        const options = {
+          foo: 'bar',
+          ShardIteratorType: 'SHIT',
+          Timestamp: '0',
+          StartingSequenceNumber: 'SSN',
+        }
+        const reader = new main.KinesisStreamReader(client, 'stream name', options)
+
+        return reader._startKinesis().then(() => {
+          const params = client.getShardIterator.args[0][0]
+          assert.equal(params.ShardIteratorType, 'SHIT')
+          assert.equal(params.Timestamp, '0')
+          assert.equal(params.StartingSequenceNumber, 'SSN')
+          assert.equal(params.foo, undefined)
+        })
+      })
+
       it('emits error when there is an error', () => {
         client.describeStream = AWSPromise.reject('lol error')
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})

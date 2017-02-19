@@ -164,7 +164,7 @@ describe('main', () => {
     })
 
     describe('readShard', () => {
-      it('exits when there is an error', () => {
+      it('exits when there is an error preserving iterator', () => {
         client.getRecords = (params, cb) => cb('mock error')
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
@@ -172,7 +172,9 @@ describe('main', () => {
           assert.equal(err, 'mock error')
         })
 
-        reader.readShard()
+        reader.readShard('shard-iterator-1')
+
+        assert(reader.iterators.has('shard-iterator-1'))
       })
 
       it('exits when shard is closed', () => {
@@ -183,23 +185,32 @@ describe('main', () => {
           assert.ok(false, 'this should never run')
         })
 
-        reader.readShard()
+        reader.readShard('shard-iterator-2')
+
+        assert.equal(reader.iterators.size, 0)
       })
 
       it('continues to read open shard', () => {
         const clock = sinon.useFakeTimers()
         const getNextIterator = sinon.stub()
-        getNextIterator.onFirstCall().returns('shard iterator')
+        const record = {
+          Data: '',
+          SequenceNumber: 'seq-1',
+        }
+        getNextIterator.onFirstCall().returns('shard-iterator-4')
         getNextIterator.onSecondCall().returns(undefined)
         client.getRecords = (params, cb) =>
-          cb(undefined, {Records: [{Data: ''}], NextShardIterator: getNextIterator()})
+          cb(undefined, {Records: [record], NextShardIterator: getNextIterator()})
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
 
         reader.once('error', () => {
           assert.ok(false, 'this should never run')
         })
+        reader.once('checkpoint', (seq) => {
+          assert.equal(seq, 'seq-1')
+        })
 
-        reader.readShard()
+        reader.readShard('shard-iterator-3')
 
         assert.strictEqual(getNextIterator.callCount, 1)
         clock.tick(10000)  // A number bigger than the idle time
@@ -207,8 +218,10 @@ describe('main', () => {
         clock.restore()
       })
     })
+  })
 
-    it('_read only calls _startKinesis once', () => {
+  describe('_read', () => {
+    it('only calls _startKinesis once', () => {
       const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
       sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
 

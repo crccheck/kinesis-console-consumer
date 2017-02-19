@@ -13,7 +13,7 @@
     "test": "istanbul cover _mocha",
     "tdd": "mocha --watch --reporter dot --bail",
     "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
-    "changelog": "changelog-maker"
+    "changelog": "echo -e \"$(changelog-maker && cat CHANGELOG.md)\" > CHANGELOG.md"
   },
   "bin": {
     "kinesis-console-consumer": "./cli.js"

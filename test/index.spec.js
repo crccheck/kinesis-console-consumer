@@ -119,15 +119,24 @@ describe('main', () => {
     })
 
     describe('_startKinesis', () => {
-      it('passes shard iterator options', () => {
+      it.only('passes shard iterator options ignoring extras', () => {
         client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
         client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
         sandbox.stub(main.KinesisStreamReader.prototype, 'readShard')
-        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+        const options = {
+          foo: 'bar',
+          ShardIteratorType: 'SHIT',
+          Timestamp: '0',
+          StartingSequenceNumber: 'SSN',
+        }
+        const reader = new main.KinesisStreamReader(client, 'stream name', options)
 
         return reader._startKinesis().then(() => {
           const params = client.getShardIterator.args[0][0]
-          console.log(params)
+          assert.equal(params.ShardIteratorType, 'SHIT')
+          assert.equal(params.Timestamp, '0')
+          assert.equal(params.StartingSequenceNumber, 'SSN')
+          assert.equal(params.foo, undefined)
         })
       })
 

@@ -47,7 +47,10 @@ class KinesisStreamReader extends Readable {
   }
 
   _startKinesis () {
-    const shardIteratorOptions = {}
+    const whitelist = ['ShardIteratorType', 'Timestamp', 'StartingSequenceNumber']
+    const shardIteratorOptions = Object.keys(this.options)
+      .filter((x) => whitelist.indexOf(x) !== -1)
+      .reduce((result, key) => Object.assign(result, {[key]: this.options[key]}), {})
     return getShardId(this.client, this._streamName)
       .then((shardIds) => {
         const shardIterators = shardIds.map((shardId) =>

@@ -1,33 +1,33 @@
 ## 1.5.0
-* [[`bdb8d58578`](https://github.com/crccheck/kinesis-console-consumer/commit/bdb8d58578)] - Options refactor/#18 (#26) (Chris Chang)
+* [[`bdb8d58578`](https://github.com/crccheck/kinesis-console-consumer/commit/bdb8d58578)] - Options refactor/#18 (#26) (crccheck)
 
 ## 1.4.0
-* [[`37ec6651ea`](https://github.com/crccheck/kinesis-console-consumer/commit/37ec6651ea)] - Make the user of the reader supply an AWS client (#24) (Chris Chang)
+* [[`37ec6651ea`](https://github.com/crccheck/kinesis-console-consumer/commit/37ec6651ea)] - Make the user of the reader supply an AWS client (#24) (crccheck)
 
 ## 1.3.0
-* [[`4b1ebf9b05`](https://github.com/crccheck/kinesis-console-consumer/commit/4b1ebf9b05)] - Switch to Stream interface (#22) (Chris Chang)
+* [[`4b1ebf9b05`](https://github.com/crccheck/kinesis-console-consumer/commit/4b1ebf9b05)] - Switch to Stream interface (#22) (crccheck)
 * [[`44c4c46b9e`](https://github.com/crccheck/kinesis-console-consumer/commit/44c4c46b9e)] - greenkeeper (crccheck)
 
 ## 1.2.0
-* [[`3270320a86`](https://github.com/crccheck/kinesis-console-consumer/commit/3270320a86)] - Refactor to use AWD-SDK's promises (#20) (Chris Chang)
-* [[`f0224d475e`](https://github.com/crccheck/kinesis-console-consumer/commit/f0224d475e)] - Read from multiple shards if there are any (#19) (Chris Chang)
-* [[`e2cf09af73`](https://github.com/crccheck/kinesis-console-consumer/commit/e2cf09af73)] - Add --list option (#17) (Chris Chang)
+* [[`3270320a86`](https://github.com/crccheck/kinesis-console-consumer/commit/3270320a86)] - Refactor to use AWD-SDK's promises (#20) (crccheck)
+* [[`f0224d475e`](https://github.com/crccheck/kinesis-console-consumer/commit/f0224d475e)] - Read from multiple shards if there are any (#19) (crccheck)
+* [[`e2cf09af73`](https://github.com/crccheck/kinesis-console-consumer/commit/e2cf09af73)] - Add --list option (#17) (crccheck)
 
 ## 1.1.0
-* [[`0b6f0379e0`](https://github.com/crccheck/kinesis-console-consumer/commit/0b6f0379e0)] - Wait between reads to avoid hitting the read rate limit (#16) (Chris Chang)
+* [[`0b6f0379e0`](https://github.com/crccheck/kinesis-console-consumer/commit/0b6f0379e0)] - Wait between reads to avoid hitting the read rate limit (#16) (crccheck)
 
 ## 1.0.0
-* [[`7759f2a69f`](https://github.com/crccheck/kinesis-console-consumer/commit/7759f2a69f)] - Node4 (#11) (Chris Chang)
+* [[`7759f2a69f`](https://github.com/crccheck/kinesis-console-consumer/commit/7759f2a69f)] - Node4 (#11) (crccheck)
 
 ## 0.3.0
-* [[`0555f82301`](https://github.com/crccheck/kinesis-console-consumer/commit/0555f82301)] - Maintenance (#10) (Chris Chang)
-* [[`cfe0099fd0`](https://github.com/crccheck/kinesis-console-consumer/commit/cfe0099fd0)] - Coverage (#9) (Chris Chang)
+* [[`0555f82301`](https://github.com/crccheck/kinesis-console-consumer/commit/0555f82301)] - Maintenance (#10) (crccheck)
+* [[`cfe0099fd0`](https://github.com/crccheck/kinesis-console-consumer/commit/cfe0099fd0)] - Coverage (#9) (crccheck)
 * [[`1a4dc31576`](https://github.com/crccheck/kinesis-console-consumer/commit/1a4dc31576)] - add some basic keywords (crccheck)
-* [[`abc51021a5`](https://github.com/crccheck/kinesis-console-consumer/commit/abc51021a5)] - add TravisCI support (#7) (Chris Chang)
-* [[`2892abe683`](https://github.com/crccheck/kinesis-console-consumer/commit/2892abe683)] - Add tests (#6) (Chris Chang)
+* [[`abc51021a5`](https://github.com/crccheck/kinesis-console-consumer/commit/abc51021a5)] - add TravisCI support (#7) (crccheck)
+* [[`2892abe683`](https://github.com/crccheck/kinesis-console-consumer/commit/2892abe683)] - Add tests (#6) (crccheck)
 
 ## 0.2.0
-* [[`3ced070777`](https://github.com/crccheck/kinesis-console-consumer/commit/3ced070777)] - Merge pull request #2 from crccheck/iterator-types (Chris Chang)
+* [[`3ced070777`](https://github.com/crccheck/kinesis-console-consumer/commit/3ced070777)] - Merge pull request #2 from crccheck/iterator-types (crccheck)
 * [[`b6d1ea234c`](https://github.com/crccheck/kinesis-console-consumer/commit/b6d1ea234c)] - Handle closed shards (crccheck)
 * [[`c08231ee50`](https://github.com/crccheck/kinesis-console-consumer/commit/c08231ee50)] - Update timestamp usage (crccheck)
 * [[`d3147aee94`](https://github.com/crccheck/kinesis-console-consumer/commit/d3147aee94)] - Add cli options for specifying where to start printing (crccheck)
@@ -35,7 +35,7 @@
 * [[`36bb978c41`](https://github.com/crccheck/kinesis-console-consumer/commit/36bb978c41)] - Add npm badge for da links (crccheck)
 
 ## 0.1.0
-* [[`0c2070ba94`](https://github.com/crccheck/kinesis-console-consumer/commit/0c2070ba94)] - Merge pull request #1 from crccheck/initial (Chris Chang)
+* [[`0c2070ba94`](https://github.com/crccheck/kinesis-console-consumer/commit/0c2070ba94)] - Merge pull request #1 from crccheck/initial (crccheck)
 * [[`7c04fc32f6`](https://github.com/crccheck/kinesis-console-consumer/commit/7c04fc32f6)] - remove debugging (crccheck)
 * [[`f223e83a1c`](https://github.com/crccheck/kinesis-console-consumer/commit/f223e83a1c)] - **Refactor**: list functions in lifecycle order (crccheck)
 * [[`21ef0a4575`](https://github.com/crccheck/kinesis-console-consumer/commit/21ef0a4575)] - refactor to use consistent style for params (crccheck)

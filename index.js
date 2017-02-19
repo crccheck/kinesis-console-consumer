@@ -89,6 +89,7 @@ class KinesisStreamReader extends Readable {
       if (!data.NextShardIterator) {
         debug('readShard.closed %s', shardIterator)
         // TODO this.end() when number of shards closed == number of shards being read
+        // this._started = 0
         return
       }
 

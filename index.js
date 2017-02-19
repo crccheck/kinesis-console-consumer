@@ -82,9 +82,15 @@ class KinesisStreamReader extends Readable {
         return
       }
 
+      if (data.MillisBehindLatest > 60 * 1000) {
+        debug('warning: behind by %d milliseconds', data.MillisBehindLatest)
+      }
       data.Records.forEach((x) => {
         this.push(x.Data.toString(), 'utf8')
       })
+      if (data.Records.length) {
+        this.emit('checkpoint', data.Records[data.Records.length - 1].SequenceNumber)
+      }
       this.iterators.delete(shardIterator)
       if (!data.NextShardIterator) {
         debug('readShard.closed %s', shardIterator)

@@ -114,12 +114,13 @@ describe('main', () => {
     it('constructor sets arguments', () => {
       const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
       assert.ok(reader)
-      assert.equal(reader._streamName, 'stream name')
+      assert.equal(reader.streamName, 'stream name')
       assert.equal(reader.options.foo, 'bar')
+      assert.equal(reader.options.interval, 2000)
     })
 
     describe('_startKinesis', () => {
-      it.only('passes shard iterator options ignoring extras', () => {
+      it('passes shard iterator options ignoring extras', () => {
         client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
         client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
         sandbox.stub(main.KinesisStreamReader.prototype, 'readShard')

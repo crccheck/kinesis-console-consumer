@@ -38,12 +38,12 @@ function getShardIterator (client, streamName, shardId, options) {
 
 class KinesisStreamReader extends Readable {
   constructor (client, streamName, options) {
-    // is this objectMode since we get whole objects at a time?
+    // should use objectMode since we get whole objects at a time?
     super({})
     this.client = client
     this._started = false  // TODO this is probably built into Streams
-    this._streamName = streamName
-    this.options = options
+    this.streamName = streamName
+    this.options = Object.assign({interval: 2000}, options)
   }
 
   _startKinesis () {
@@ -51,10 +51,10 @@ class KinesisStreamReader extends Readable {
     const shardIteratorOptions = Object.keys(this.options)
       .filter((x) => whitelist.indexOf(x) !== -1)
       .reduce((result, key) => Object.assign(result, {[key]: this.options[key]}), {})
-    return getShardId(this.client, this._streamName)
+    return getShardId(this.client, this.streamName)
       .then((shardIds) => {
         const shardIterators = shardIds.map((shardId) =>
-          getShardIterator(this.client, this._streamName, shardId, shardIteratorOptions))
+          getShardIterator(this.client, this.streamName, shardId, shardIteratorOptions))
         return Promise.all(shardIterators)
       })
       .then((shardIterators) => {

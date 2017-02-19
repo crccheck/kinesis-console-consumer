@@ -12,7 +12,8 @@
     "pretest": "npm run lint",
     "test": "istanbul cover _mocha",
     "tdd": "mocha --watch --reporter dot --bail",
-    "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls"
+    "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
+    "changelog": "changelog-maker"
   },
   "bin": {
     "kinesis-console-consumer": "./cli.js"

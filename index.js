@@ -38,12 +38,15 @@ function getShardIterator (client, streamName, shardId, options) {
 
 class KinesisStreamReader extends Readable {
   constructor (client, streamName, options) {
-    // should use objectMode since we get whole objects at a time?
+    // Use objectMode since we get whole objects at a time? Maybe have an
+    // `options.json` that sets object mode and automagically does JSON.parse
+    // or `options.parse` that can be set to `JSON.parse`
     super({})
     this.client = client
-    this._started = false  // TODO this is probably built into Streams
     this.streamName = streamName
     this.options = Object.assign({interval: 2000}, options)
+    this._started = false  // TODO this is probably built into Streams
+    this.iterators = new Set()
   }
 
   _startKinesis () {
@@ -66,7 +69,8 @@ class KinesisStreamReader extends Readable {
   }
 
   readShard (shardIterator) {
-    debug('readShard starting from %s', shardIterator)
+    this.iterators.add(shardIterator)
+    debug('readShard starting from %s (out of %d)', shardIterator, this.iterators.size)
     const params = {
       ShardIterator: shardIterator,
       Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
@@ -81,6 +85,7 @@ class KinesisStreamReader extends Readable {
       data.Records.forEach((x) => {
         this.push(x.Data.toString(), 'utf8')
       })
+      this.iterators.delete(shardIterator)
       if (!data.NextShardIterator) {
         debug('readShard.closed %s', shardIterator)
         // TODO this.end() when number of shards closed == number of shards being read
@@ -90,7 +95,7 @@ class KinesisStreamReader extends Readable {
       setTimeout(() => {
         this.readShard(data.NextShardIterator)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
-      }, this.interval)
+      }, this.options.interval)
     })
   }
 

@@ -50,7 +50,7 @@ Display contents of a stream, "hello-world", starting from 15 minutes ago:
 Usage as a package
 ------------------
 
-Hey, you can import this module into your own project to use as Kinesis Stream
+You can import this module into your own project to use as Kinesis Stream
 Reader readable stream too!
 
     const AWS = require('aws-sdk')
@@ -61,8 +61,7 @@ Reader readable stream too!
 
 ### Options
 
-* `interval` Milliseconds between each Kinesis read. Remember there is a low
-  limit of 5 reads / second / shard
+* `interval` (default: `2000`) Milliseconds between each Kinesis read. Remember limit is 5 reads / second / shard
 * Any [getShardIterator] param
 
   [Kafka quickstart]: http://kafka.apache.org/documentation.html#quickstart_consume

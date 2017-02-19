@@ -90,7 +90,7 @@ class KinesisStreamReader extends Readable {
       setTimeout(() => {
         this.readShard(data.NextShardIterator)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
-      }, 2000)
+      }, this.interval)
     })
   }
 

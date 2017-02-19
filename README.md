@@ -59,5 +59,11 @@ Reader readable stream too!
     const reader = new KinesisStreamReader(client, streamName, options)
     reader.pipe(yourDestinationHere)
 
+### Options
+
+* `interval` Milliseconds between each Kinesis read. Remember there is a low
+  limit of 5 reads / second / shard
+* Any [getShardIterator] param
 
   [Kafka quickstart]: http://kafka.apache.org/documentation.html#quickstart_consume
+  [getShardIterator]: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html#getShardIterator-property

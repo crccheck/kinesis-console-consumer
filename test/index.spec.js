@@ -235,6 +235,26 @@ describe('main', () => {
         assert.equal(reader._readableState.buffer.length, 1)
         assert.deepEqual(reader._readableState.buffer.head.data, {foo: 'bar'})
       })
+
+      it('parser exceptions are passed through', () => {
+        const record = {
+          Data: '{"foo":"bar"}',
+          SequenceNumber: 'seq-1',
+        }
+        const getNextIterator = sinon.stub().returns(undefined)
+        client.getRecords = (params, cb) =>
+          cb(undefined, {Records: [record], NextShardIterator: getNextIterator()})
+        const reader = new main.KinesisStreamReader(client, 'stream name', {
+          parser: () => { throw new Error('lolwut') },
+        })
+
+        try {
+          reader.readShard('shard-iterator-6')
+          assert(false, 'reader should have thrown')
+        } catch (err) {
+          assert.equal(err.message, 'lolwut')
+        }
+      })
     })
   })
 

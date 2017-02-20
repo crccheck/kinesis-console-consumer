@@ -219,7 +219,7 @@ describe('main', () => {
 
       it('parses incoming records', () => {
         const record = {
-          Data: '{}',
+          Data: '{"foo":"bar"}',
           SequenceNumber: 'seq-1',
         }
         const getNextIterator = sinon.stub().returns(undefined)
@@ -229,7 +229,11 @@ describe('main', () => {
           parser: JSON.parse,
         })
 
-        reader.readShard('shard-iterator-3')
+        reader.readShard('shard-iterator-5')
+
+        assert.ok(reader._readableState.objectMode)
+        assert.equal(reader._readableState.buffer.length, 1)
+        assert.deepEqual(reader._readableState.buffer.head.data, {foo: 'bar'})
       })
     })
   })

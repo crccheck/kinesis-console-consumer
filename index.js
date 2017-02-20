@@ -39,7 +39,7 @@ function getShardIterator (client, streamName, shardId, options) {
 class KinesisStreamReader extends Readable {
   constructor (client, streamName, options) {
     super({
-      objectMode: !!options.parser,
+      objectMode: !!options.parser,  // Should this always be true?
     })
     this.client = client
     this.streamName = streamName

@@ -61,8 +61,12 @@ Reader readable stream too!
 
 ### Options
 
-* `interval` (default: `2000`) Milliseconds between each Kinesis read. Remember limit is 5 reads / second / shard
-* Any [getShardIterator] param
+* `interval: number` (default: `2000`) Milliseconds between each Kinesis read. Remember limit is 5 reads / second / shard
+* `parser: Function` If this is set, this function is applied to the data. Example:
+      const client = AWS.Kinesis()
+      const reader = new KinesisStreamReader(client, streamName, {parser: JSON.parse})
+      reader.on('data', console.log(data.id))
+* And any [getShardIterator] parameter
 
 ### Custom events
 

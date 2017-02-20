@@ -233,7 +233,12 @@ describe('main', () => {
 
         assert.ok(reader._readableState.objectMode)
         assert.equal(reader._readableState.buffer.length, 1)
-        assert.deepEqual(reader._readableState.buffer.head.data, {foo: 'bar'})
+        if (reader._readableState.buffer.head) {
+          assert.deepEqual(reader._readableState.buffer.head.data, {foo: 'bar'})
+        } else {
+          // NODE4
+          assert.deepEqual(reader._readableState.buffer[0], {foo: 'bar'})
+        }
       })
 
       it('parser exceptions are passed through', () => {

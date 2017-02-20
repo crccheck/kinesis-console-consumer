@@ -61,15 +61,22 @@ Reader readable stream too!
 
 ### Options
 
-* `interval` (default: `2000`) Milliseconds between each Kinesis read. Remember limit is 5 reads / second / shard
-* Any [getShardIterator] param
+* `interval: number` (default: `2000`) Milliseconds between each Kinesis read. Remember limit is 5 reads / second / shard
+* `parser: Function` If this is set, this function is applied to the data. Example:
+
+        const client = AWS.Kinesis()
+        const reader = new KinesisStreamReader(client, streamName, {parser: JSON.parse})
+        reader.on('data', console.log(data.id))
+
+* And any [getShardIterator] parameter
 
 ### Custom events
 
 These are the WIP events you can attach to the reader:
 
 * `checkpoint` Inspired by [kinesis-readable], this fires when data is received so you can keep track of the last successful sequence read
-      reader.on('checkpoint', (sequenceNumber: string) => {})
+
+        reader.on('checkpoint', (sequenceNumber: string) => {})
 
 
   [Kafka quickstart]: http://kafka.apache.org/documentation.html#quickstart_consume

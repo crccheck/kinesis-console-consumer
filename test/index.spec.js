@@ -191,7 +191,7 @@ describe('main', () => {
       })
 
       it('continues to read open shard', () => {
-        const clock = sinon.useFakeTimers()
+        const clock = sandbox.useFakeTimers()
         const getNextIterator = sinon.stub()
         const record = {
           Data: '',
@@ -215,7 +215,50 @@ describe('main', () => {
         assert.strictEqual(getNextIterator.callCount, 1)
         clock.tick(10000)  // A number bigger than the idle time
         assert.strictEqual(getNextIterator.callCount, 2)
-        clock.restore()
+      })
+
+      it('parses incoming records', () => {
+        const record = {
+          Data: '{"foo":"bar"}',
+          SequenceNumber: 'seq-1',
+        }
+        const getNextIterator = sinon.stub().returns(undefined)
+        client.getRecords = (params, cb) =>
+          cb(undefined, {Records: [record], NextShardIterator: getNextIterator()})
+        const reader = new main.KinesisStreamReader(client, 'stream name', {
+          parser: JSON.parse,
+        })
+
+        reader.readShard('shard-iterator-5')
+
+        assert.ok(reader._readableState.objectMode)
+        assert.equal(reader._readableState.buffer.length, 1)
+        if (reader._readableState.buffer.head) {
+          assert.deepEqual(reader._readableState.buffer.head.data, {foo: 'bar'})
+        } else {
+          // NODE4
+          assert.deepEqual(reader._readableState.buffer[0], {foo: 'bar'})
+        }
+      })
+
+      it('parser exceptions are passed through', () => {
+        const record = {
+          Data: '{"foo":"bar"}',
+          SequenceNumber: 'seq-1',
+        }
+        const getNextIterator = sinon.stub().returns(undefined)
+        client.getRecords = (params, cb) =>
+          cb(undefined, {Records: [record], NextShardIterator: getNextIterator()})
+        const reader = new main.KinesisStreamReader(client, 'stream name', {
+          parser: () => { throw new Error('lolwut') },
+        })
+
+        try {
+          reader.readShard('shard-iterator-6')
+          assert(false, 'reader should have thrown')
+        } catch (err) {
+          assert.equal(err.message, 'lolwut')
+        }
       })
     })
   })

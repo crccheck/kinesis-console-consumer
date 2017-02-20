@@ -38,13 +38,15 @@ function getShardIterator (client, streamName, shardId, options) {
 
 class KinesisStreamReader extends Readable {
   constructor (client, streamName, options) {
-    // Use objectMode since we get whole objects at a time? Maybe have an
-    // `options.json` that sets object mode and automagically does JSON.parse
-    // or `options.parse` that can be set to `JSON.parse`
-    super({})
+    super({
+      objectMode: !!options.parser,  // Should this always be true?
+    })
     this.client = client
     this.streamName = streamName
-    this.options = Object.assign({interval: 2000}, options)
+    this.options = Object.assign({
+      interval: 2000,
+      parser: (x) => x,
+    }, options)
     this._started = false  // TODO this is probably built into Streams
     this.iterators = new Set()
   }
@@ -85,7 +87,7 @@ class KinesisStreamReader extends Readable {
       if (data.MillisBehindLatest > 60 * 1000) {
         debug('warning: behind by %d milliseconds', data.MillisBehindLatest)
       }
-      data.Records.forEach((x) => this.push(x.Data))
+      data.Records.forEach((x) => this.push(this.options.parser(x.Data)))
       if (data.Records.length) {
         this.emit('checkpoint', data.Records[data.Records.length - 1].SequenceNumber)
       }

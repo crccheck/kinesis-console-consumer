@@ -1,3 +1,8 @@
+## 1.6.0
+* [[`0dc1702679`](https://github.com/crccheck/kinesis-console-consumer/commit/0dc1702679)] - Add ability to process messages (#31) (crccheck)
+* [[`728fc0a858`](https://github.com/crccheck/kinesis-console-consumer/commit/728fc0a858)] - Add 'checkpoint' event and keep track of sequence numbers and shard iterators (#30) (crccheck)
+* [[`3cd70aa412`](https://github.com/crccheck/kinesis-console-consumer/commit/3cd70aa412)] - Add basic changelog (#28) (crccheck)
+
 ## 1.5.0
 * [[`bdb8d58578`](https://github.com/crccheck/kinesis-console-consumer/commit/bdb8d58578)] - Options refactor/#18 (#26) (crccheck)
 

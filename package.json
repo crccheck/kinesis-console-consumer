@@ -1,6 +1,6 @@
 {
   "name": "kinesis-console-consumer",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "AWS Kinesis stream consumer for the console",
   "main": "index.js",
   "engines": {
@@ -13,7 +13,7 @@
     "test": "istanbul cover _mocha",
     "tdd": "mocha --watch --reporter dot --bail",
     "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
-    "changelog": "echo -e \"$(changelog-maker && cat CHANGELOG.md)\" > CHANGELOG.md"
+    "changelog": "echo \"$(changelog-maker && cat CHANGELOG.md)\" > CHANGELOG.md"
   },
   "bin": {
     "kinesis-console-consumer": "./cli.js"

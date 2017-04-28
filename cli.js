@@ -6,8 +6,8 @@ const fs = require('fs')
 const AWS = require('aws-sdk')
 const program = require('commander')
 const updateNotifier = require('update-notifier')
+const { getStreams, KinesisReadable } = require('kinesis-streams')
 
-const index = require('./')
 
 const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
 const client = new AWS.Kinesis()
@@ -47,13 +47,13 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    const reader = new index.KinesisStreamReader(client, streamName, options)
+    const reader = new KinesisReadable(client, streamName, options)
     reader.pipe(process.stdout)
   })
   .parse(process.argv)
 
 if (!program.args.length) {
-  index.getStreams(client)
+  getStreams(client)
     .then(console.log)
     .catch(console.error)
 }

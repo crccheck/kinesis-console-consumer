@@ -30,6 +30,7 @@
     "aws-sdk": "^2.16.0",
     "commander": "^2.9.0",
     "debug": "^2.6.1",
+    "kinesis-streams": "^0.2.0",
     "update-notifier": "^2.1.0"
   },
   "devDependencies": {

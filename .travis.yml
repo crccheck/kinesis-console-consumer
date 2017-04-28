@@ -1,8 +1,7 @@
 language: node_js
 node_js:
    - "6"
-   - "5"
-   - "4"
+   - "7"
 before_script:
   - npm install coveralls mocha-lcov-reporter
 script: npm run travisci

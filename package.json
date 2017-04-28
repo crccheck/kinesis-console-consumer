@@ -4,15 +4,11 @@
   "description": "AWS Kinesis stream consumer for the console",
   "main": "index.js",
   "engines": {
-    "node": ">4.0"
+    "node": ">6.0"
   },
   "scripts": {
     "start": "node index.js",
     "lint": "eslint --ignore-path .gitignore .",
-    "pretest": "npm run lint",
-    "test": "istanbul cover _mocha",
-    "tdd": "mocha --watch --reporter dot --bail",
-    "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
     "changelog": "echo \"$(changelog-maker && cat CHANGELOG.md)\" > CHANGELOG.md"
   },
   "bin": {

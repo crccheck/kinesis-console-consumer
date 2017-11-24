@@ -34,6 +34,8 @@ $ kinesis-console-consumer --help
     --type-at <sequence_number>     start reading from this sequence number (AT_SEQUENCE_NUMBER)
     --type-after <sequence_number>  start reading after this sequence number (AFTER_SEQUENCE_NUMBER)
     --type-timestamp <timestamp>    start reading after this time (units: epoch seconds) (AT_TIMESTAMP)
+    --new-line                      print each record to a new line
+    --regex-filter <regexFilter>    filter data using this regular expression
 ```
 
 ### Examples

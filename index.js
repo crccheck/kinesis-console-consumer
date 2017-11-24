@@ -46,6 +46,7 @@ class KinesisStreamReader extends Readable {
     this.options = Object.assign({
       interval: 2000,
       parser: (x) => x,
+      filter: new RegExp(options.RegexFilter)
     }, options)
     this._started = false  // TODO this is probably built into Streams
     this.iterators = new Set()
@@ -87,7 +88,12 @@ class KinesisStreamReader extends Readable {
       if (data.MillisBehindLatest > 60 * 1000) {
         debug('warning: behind by %d milliseconds', data.MillisBehindLatest)
       }
-      data.Records.forEach((x) => this.push(this.options.parser(x.Data)))
+      data.Records.forEach((x) => {
+        var record = this.options.parser(x.Data)
+        if(this.options.NewLine) record += '\n'
+        if(this.options.filter.test(record)) this.push(record)
+      })
+
       if (data.Records.length) {
         this.emit('checkpoint', data.Records[data.Records.length - 1].SequenceNumber)
       }

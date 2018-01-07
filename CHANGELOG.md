@@ -1,3 +1,13 @@
+## 1.7.0
+
+### Added
+
+* Add --no-new-line and --regex-filter options (#34) (#37). Kinesis Console Consumer now prints a newline between records unless the `--no-new-line` flag is set. For platforms without `grep`, you can filter which records get shown with the new `--regex-filter <regex>` option.
+
+### Changed
+
+* [7fc4e427ce] - Upgrade requirements and delint code (#35)
+
 ## 1.6.0
 * [[`0dc1702679`](https://github.com/crccheck/kinesis-console-consumer/commit/0dc1702679)] - Add ability to process messages (#31) (crccheck)
 * [[`728fc0a858`](https://github.com/crccheck/kinesis-console-consumer/commit/728fc0a858)] - Add 'checkpoint' event and keep track of sequence numbers and shard iterators (#30) (crccheck)

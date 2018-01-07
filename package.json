@@ -1,6 +1,6 @@
 {
   "name": "kinesis-console-consumer",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "AWS Kinesis stream consumer for the console",
   "main": "index.js",
   "engines": {

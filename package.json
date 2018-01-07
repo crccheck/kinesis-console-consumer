@@ -4,16 +4,15 @@
   "description": "AWS Kinesis stream consumer for the console",
   "main": "index.js",
   "engines": {
-    "node": ">4.0"
+    "node": ">6.0"
   },
   "scripts": {
     "start": "node index.js",
-    "lint": "eslint --ignore-path .gitignore .",
+    "lint": "eslint --ignore-path .gitignore --report-unused-disable-directives .",
     "pretest": "npm run lint",
     "test": "istanbul cover _mocha",
     "tdd": "mocha --watch --reporter dot --bail",
-    "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
-    "changelog": "echo \"$(changelog-maker && cat CHANGELOG.md)\" > CHANGELOG.md"
+    "travisci": "npm run test -- --report lcovonly && cat ./coverage/lcov.info | coveralls"
   },
   "bin": {
     "kinesis-console-consumer": "./cli.js"
@@ -27,19 +26,19 @@
   "author": "Chris Chang <c@crccheck.com> (http://crccheck.com/blog)",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "^2.16.0",
+    "aws-sdk": "^2.46.0",
     "commander": "^2.9.0",
-    "debug": "^2.6.1",
+    "kinesis-streams": "^0.2.0",
     "update-notifier": "^2.1.0"
   },
   "devDependencies": {
-    "eslint": "^3.15.0",
-    "eslint-config-standard": "^6.2.0",
-    "eslint-plugin-promise": "^3.4.2",
-    "eslint-plugin-standard": "^2.0.1",
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
     "istanbul": "^0.4.5",
-    "mocha": "^3.2.0",
-    "sinon": "^1.17.7"
+    "mocha": "^3.3.0",
+    "sinon": "^2.1.0"
   },
   "repository": {
     "type": "git",

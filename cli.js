@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 'use strict'
 
-const fs = require('fs')
-
 const AWS = require('aws-sdk')
 const program = require('commander')
 const updateNotifier = require('update-notifier')
 
 const index = require('./')
+const pkg = require('./package.json')
 
-const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
 const client = new AWS.Kinesis()
 
 program

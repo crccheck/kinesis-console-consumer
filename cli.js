@@ -47,7 +47,7 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    options.noNewLine = !program.noNewLine
+    options.newLine = program.newLine
     if (program.regexFilter) {
       options.RegexFilter = program.regexFilter
     } else {

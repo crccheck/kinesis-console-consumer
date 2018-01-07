@@ -90,7 +90,7 @@ class KinesisStreamReader extends Readable {
       }
       data.Records.forEach((x) => {
         let record = this.options.parser(x.Data)
-        if (!this.options.noNewLine) {
+        if (this.options.newLine) {
           record += '\n'
         }
         if (this.options.filter.test(record)) {

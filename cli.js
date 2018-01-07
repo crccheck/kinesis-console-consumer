@@ -22,7 +22,7 @@ program
   .option('--type-at <sequence_number>', 'start reading from this sequence number (AT_SEQUENCE_NUMBER)')
   .option('--type-after <sequence_number>', 'start reading after this sequence number (AFTER_SEQUENCE_NUMBER)')
   .option('--type-timestamp <timestamp>', 'start reading after this time (units: epoch seconds) (AT_TIMESTAMP)')
-  .option('--new-line', 'print each record to a new line')
+  .option('--no-new-line', "Don't print a new line between records")
   .option('--regex-filter <regexFilter>', 'filter data using this regular expression')
   .action((streamName) => {
     if (program.list) {
@@ -49,11 +49,7 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    if (program.newLine) {
-      options.NewLine = true
-    } else {
-      options.Newline = false
-    }
+    options.noNewLine = !program.noNewLine
     if (program.regexFilter) {
       options.RegexFilter = program.regexFilter
     } else {

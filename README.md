@@ -27,16 +27,17 @@ $ kinesis-console-consumer --help
 
   Options:
 
-    -h, --help                      output usage information
     -V, --version                   output the version number
+    --list                          Just list all streams and exit
     --type-latest                   (DEFAULT) start reading any new data (LATEST)
     --type-oldest                   start reading from the oldest data (TRIM_HORIZON)
     --type-at <sequence_number>     start reading from this sequence number (AT_SEQUENCE_NUMBER)
     --type-after <sequence_number>  start reading after this sequence number (AFTER_SEQUENCE_NUMBER)
     --type-timestamp <timestamp>    start reading after this time (units: epoch seconds) (AT_TIMESTAMP)
-    --new-line                      print each record to a new line
+    --no-new-line                   Don't print a new line between records (default: true)
     --regex-filter <regexFilter>    filter data using this regular expression
-```
+    -h, --help                      output usage information
+  ```
 
 ### Examples
 

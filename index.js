@@ -89,9 +89,13 @@ class KinesisStreamReader extends Readable {
         debug('warning: behind by %d milliseconds', data.MillisBehindLatest)
       }
       data.Records.forEach((x) => {
-        var record = this.options.parser(x.Data)
-        if (this.options.NewLine) record += '\n'
-        if (this.options.filter.test(record)) this.push(record)
+        let record = this.options.parser(x.Data)
+        if (!this.options.noNewLine) {
+          record += '\n'
+        }
+        if (this.options.filter.test(record)) {
+          this.push(record)
+        }
       })
 
       if (data.Records.length) {

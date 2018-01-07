@@ -46,7 +46,7 @@ class KinesisStreamReader extends Readable {
     this.options = Object.assign({
       interval: 2000,
       parser: (x) => x,
-      filter: new RegExp(options.RegexFilter),
+      filter: new RegExp(options.regexFilter),
     }, options)
     this._started = false // TODO this is probably built into Streams
     this.iterators = new Set()

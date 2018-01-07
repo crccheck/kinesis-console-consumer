@@ -49,9 +49,9 @@ program
     }
     options.newLine = program.newLine
     if (program.regexFilter) {
-      options.RegexFilter = program.regexFilter
+      options.regexFilter = program.regexFilter
     } else {
-      options.RegexFilter = '.*'
+      options.regexFilter = '.*'
     }
     const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)

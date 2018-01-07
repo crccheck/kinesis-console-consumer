@@ -48,3 +48,8 @@ List Kinesis streams:
 Display contents of a stream, "hello-world", starting from 15 minutes ago:
 
     kinesis-console-consumer 'hello-world' --type-timestamp "$(($(date +%s) - 900))"
+
+Only display records that have something that looks like an IP address.
+NOTE: `grep` is preferred, but not all platforms have it.
+
+    kinesis-console-consumer 'hello-world' --regex-filter "\d+\.\d+\.\d+\.\d+"

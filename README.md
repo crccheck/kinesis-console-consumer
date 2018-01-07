@@ -27,16 +27,17 @@ $ kinesis-console-consumer --help
 
   Options:
 
-    -h, --help                      output usage information
     -V, --version                   output the version number
+    --list                          Just list all streams and exit
     --type-latest                   (DEFAULT) start reading any new data (LATEST)
     --type-oldest                   start reading from the oldest data (TRIM_HORIZON)
     --type-at <sequence_number>     start reading from this sequence number (AT_SEQUENCE_NUMBER)
     --type-after <sequence_number>  start reading after this sequence number (AFTER_SEQUENCE_NUMBER)
     --type-timestamp <timestamp>    start reading after this time (units: epoch seconds) (AT_TIMESTAMP)
-    --new-line                      print each record to a new line
+    --no-new-line                   Don't print a new line between records (default: true)
     --regex-filter <regexFilter>    filter data using this regular expression
-```
+    -h, --help                      output usage information
+  ```
 
 ### Examples
 
@@ -48,39 +49,7 @@ Display contents of a stream, "hello-world", starting from 15 minutes ago:
 
     kinesis-console-consumer 'hello-world' --type-timestamp "$(($(date +%s) - 900))"
 
+Only display records that have something that looks like an IP address.
+NOTE: `grep` is preferred, but not all platforms have it.
 
-Usage as a package
-------------------
-
-You can import this module into your own project to use as Kinesis Stream
-Reader readable stream too!
-
-    const AWS = require('aws-sdk')
-    const { KinesisStreamReader } = require('kinesis-console-consumer')
-    const client = AWS.Kinesis()
-    const reader = new KinesisStreamReader(client, streamName, options)
-    reader.pipe(yourDestinationHere)
-
-### Options
-
-* `interval: number` (default: `2000`) Milliseconds between each Kinesis read. Remember limit is 5 reads / second / shard
-* `parser: Function` If this is set, this function is applied to the data. Example:
-
-        const client = AWS.Kinesis()
-        const reader = new KinesisStreamReader(client, streamName, {parser: JSON.parse})
-        reader.on('data', console.log(data.id))
-
-* And any [getShardIterator] parameter
-
-### Custom events
-
-These are the WIP events you can attach to the reader:
-
-* `checkpoint` Inspired by [kinesis-readable], this fires when data is received so you can keep track of the last successful sequence read
-
-        reader.on('checkpoint', (sequenceNumber: string) => {})
-
-
-  [Kafka quickstart]: http://kafka.apache.org/documentation.html#quickstart_consume
-  [getShardIterator]: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html#getShardIterator-property
-  [kinesis-readable]: https://github.com/rclark/kinesis-readable
+    kinesis-console-consumer 'hello-world' --regex-filter "\d+\.\d+\.\d+\.\d+"

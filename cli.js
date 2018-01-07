@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 'use strict'
 
-const fs = require('fs')
-
 const AWS = require('aws-sdk')
 const program = require('commander')
 const updateNotifier = require('update-notifier')
 
 const index = require('./')
+const pkg = require('./package.json')
 
-const pkg = JSON.parse(fs.readFileSync(`${__dirname}/package.json`))
 const client = new AWS.Kinesis()
 
 program
@@ -22,7 +20,7 @@ program
   .option('--type-at <sequence_number>', 'start reading from this sequence number (AT_SEQUENCE_NUMBER)')
   .option('--type-after <sequence_number>', 'start reading after this sequence number (AFTER_SEQUENCE_NUMBER)')
   .option('--type-timestamp <timestamp>', 'start reading after this time (units: epoch seconds) (AT_TIMESTAMP)')
-  .option('--new-line', 'print each record to a new line')
+  .option('--no-new-line', "Don't print a new line between records")
   .option('--regex-filter <regexFilter>', 'filter data using this regular expression')
   .action((streamName) => {
     if (program.list) {
@@ -49,15 +47,11 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    if (program.newLine) {
-      options.NewLine = true
-    } else {
-      options.Newline = false
-    }
+    options.newLine = program.newLine
     if (program.regexFilter) {
-      options.RegexFilter = program.regexFilter
+      options.regexFilter = program.regexFilter
     } else {
-      options.RegexFilter = '.*'
+      options.regexFilter = '.*'
     }
     const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)

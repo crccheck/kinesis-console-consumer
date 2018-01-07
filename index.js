@@ -39,16 +39,16 @@ function getShardIterator (client, streamName, shardId, options) {
 class KinesisStreamReader extends Readable {
   constructor (client, streamName, options) {
     super({
-      objectMode: !!options.parser,  // Should this always be true?
+      objectMode: !!options.parser, // Should this always be true?
     })
     this.client = client
     this.streamName = streamName
     this.options = Object.assign({
       interval: 2000,
       parser: (x) => x,
-      filter: new RegExp(options.RegexFilter)
+      filter: new RegExp(options.RegexFilter),
     }, options)
-    this._started = false  // TODO this is probably built into Streams
+    this._started = false // TODO this is probably built into Streams
     this.iterators = new Set()
   }
 
@@ -76,7 +76,7 @@ class KinesisStreamReader extends Readable {
     debug('readShard starting from %s (out of %d)', shardIterator, this.iterators.size)
     const params = {
       ShardIterator: shardIterator,
-      Limit: 10000,  // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
+      Limit: 10000, // https://github.com/awslabs/amazon-kinesis-client/issues/4#issuecomment-56859367
     }
     // Not written using Promises because they make it harder to keep the program alive here
     this.client.getRecords(params, (err, data) => {
@@ -90,8 +90,8 @@ class KinesisStreamReader extends Readable {
       }
       data.Records.forEach((x) => {
         var record = this.options.parser(x.Data)
-        if(this.options.NewLine) record += '\n'
-        if(this.options.filter.test(record)) this.push(record)
+        if (this.options.NewLine) record += '\n'
+        if (this.options.filter.test(record)) this.push(record)
       })
 
       if (data.Records.length) {

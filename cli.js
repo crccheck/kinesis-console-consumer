@@ -49,7 +49,7 @@ program
     } else {
       options.ShardIteratorType = 'LATEST'
     }
-    if(program.newLine) {
+    if (program.newLine) {
       options.NewLine = true
     } else {
       options.Newline = false
@@ -57,7 +57,7 @@ program
     if (program.regexFilter) {
       options.RegexFilter = program.regexFilter
     } else {
-      options.RegexFilter = ".*"
+      options.RegexFilter = '.*'
     }
     const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)

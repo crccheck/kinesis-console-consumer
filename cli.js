@@ -9,6 +9,12 @@ const index = require('./')
 const pkg = require('./package.json')
 
 const client = new AWS.Kinesis()
+const zlib = require('zlib')
+
+const gzip_head = Buffer.from([0x1f, 0x8b])
+const zlib_low_head = Buffer.from([0x78, 0x01])
+const zlib_default_head = Buffer.from([0x78, 0x9c])
+const zlib_best_head = Buffer.from([0x78, 0xda])
 
 program
   .version(pkg.version)
@@ -28,7 +34,20 @@ program
       program.args = []
       return
     }
-    const options = {}
+    const options = {
+      parser: (buffer) => {
+        let buffer_head = buffer.slice(0, 2)
+        if (buffer_head.equals(zlib_default_head) || buffer_head.equals(gzip_head) || buffer_head.equals(zlib_low_head) || buffer_head.equals(zlib_best_head)) {
+          try {
+            buffer = zlib.unzipSync(buffer)
+          } catch (e) {
+            console.error(`err_data :: ${e.message} :: ${buffer}`)
+          }
+        }
+
+        return buffer
+      },
+    }
     if (program.typeTimestamp) {
       options.ShardIteratorType = 'AT_TIMESTAMP'
       if (isNaN(program.typeTimestamp)) {

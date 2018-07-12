@@ -4,4 +4,5 @@ node_js:
    - "8"
 before_script:
   - npm install coveralls mocha-lcov-reporter
-script: npm run travisci
+script: npm run test
+after_success: npm run travisci

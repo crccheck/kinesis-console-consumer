@@ -23,15 +23,13 @@ const AWSPromise = {
 
 describe('main', () => {
   let client
-  let sandbox
 
   beforeEach(() => {
     client = {}
-    sandbox = sinon.sandbox.create()
   })
 
   afterEach(() => {
-    sandbox.restore()
+    sinon.restore()
   })
 
   describe('getStreams', () => {
@@ -121,7 +119,7 @@ describe('main', () => {
       it('passes shard iterator options ignoring extras', () => {
         client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
         client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
-        sandbox.stub(main.KinesisStreamReader.prototype, 'readShard')
+        sinon.stub(main.KinesisStreamReader.prototype, 'readShard')
         const options = {
           foo: 'bar',
           ShardIteratorType: 'SHIT',
@@ -189,7 +187,7 @@ describe('main', () => {
       })
 
       it('continues to read open shard', () => {
-        const clock = sandbox.useFakeTimers()
+        const clock = sinon.useFakeTimers()
         const getNextIterator = sinon.stub()
         const record = {
           Data: '',
@@ -262,7 +260,7 @@ describe('main', () => {
   describe('_read', () => {
     it('only calls _startKinesis once', () => {
       const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
-      sandbox.stub(reader, '_startKinesis').resolves()
+      sinon.stub(reader, '_startKinesis').resolves()
 
       reader._read()
       reader._read()

@@ -222,9 +222,8 @@ describe('main', () => {
           Data: '{"foo":"bar"}',
           SequenceNumber: 'seq-1',
         }
-        const getNextIterator = sinon.stub().returns(undefined)
         client.getRecords = (params, cb) =>
-          cb(null, {Records: [record], NextShardIterator: getNextIterator()})
+          cb(null, {Records: [record], NextShardIterator: undefined})
         const reader = new main.KinesisStreamReader(client, 'stream name', {
           parser: JSON.parse,
         })
@@ -246,9 +245,8 @@ describe('main', () => {
           Data: '{"foo":"bar"}',
           SequenceNumber: 'seq-1',
         }
-        const getNextIterator = sinon.stub().returns(undefined)
         client.getRecords = (params, cb) =>
-          cb(null, {Records: [record], NextShardIterator: getNextIterator()})
+          cb(null, {Records: [record], NextShardIterator: undefined})
         const reader = new main.KinesisStreamReader(client, 'stream name', {
           parser: () => { throw new Error('lolwut') },
         })
@@ -266,7 +264,7 @@ describe('main', () => {
   describe('_read', () => {
     it('only calls _startKinesis once', () => {
       const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
-      sandbox.stub(reader, '_startKinesis').returns(Promise.resolve())
+      sandbox.stub(reader, '_startKinesis').resolves()
 
       reader._read()
       reader._read()

@@ -65,6 +65,7 @@ class KinesisStreamReader extends Readable {
       })
       .then((shardIterators) => {
         shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
+        this.emit('connected')
       })
       .catch((err) => {
         this.emit('error', err) || console.log(err, err.stack)

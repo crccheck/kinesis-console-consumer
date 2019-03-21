@@ -148,6 +148,19 @@ describe('main', () => {
         return reader._startKinesis('stream name', {})
       })
 
+      it('emits connected event when successfully connected', () => {
+        client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+        client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
+
+        sinon.stub(main.KinesisStreamReader.prototype, 'readShard')
+        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+
+        return new Promise((resolve) => {
+          reader.once('connected', resolve)
+          reader._startKinesis()
+        })
+      })
+
       xit('logs when there is an error', () => {
         client.describeStream = AWSPromise.reject('lol error')
         const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})

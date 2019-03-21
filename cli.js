@@ -22,6 +22,7 @@ program
   .option('--type-timestamp <timestamp>', 'start reading after this time (units: epoch seconds) (AT_TIMESTAMP)')
   .option('--no-new-line', "Don't print a new line between records")
   .option('--regex-filter <regexFilter>', 'filter data using this regular expression')
+  .option('--verbose', 'output a message when the stream is succesfully connected')
   .action((streamName) => {
     if (program.list) {
       // Hack program.args to be empty so the getStreams block below will run instead
@@ -54,6 +55,7 @@ program
       options.regexFilter = '.*'
     }
     const reader = new index.KinesisStreamReader(client, streamName, options)
+    if (program.verbose) reader.on("connected", () => process.stdout.write(`Connected to stream: ${streamName}\n`))  
     reader.pipe(process.stdout)
   })
   .parse(process.argv)

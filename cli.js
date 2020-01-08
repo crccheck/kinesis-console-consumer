@@ -22,6 +22,7 @@ program
   .option('--type-timestamp <timestamp>', 'start reading after this time (units: epoch seconds) (AT_TIMESTAMP)')
   .option('--no-new-line', "Don't print a new line between records")
   .option('--regex-filter <regexFilter>', 'filter data using this regular expression')
+  .option('--unzip', 'Unzip each record before printing')
   .action((streamName) => {
     if (program.list) {
       // Hack program.args to be empty so the getStreams block below will run instead
@@ -53,6 +54,7 @@ program
     } else {
       options.regexFilter = '.*'
     }
+    options.unzip = program.unzip
     const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)
   })

@@ -36,6 +36,7 @@ $ kinesis-console-consumer --help
     --type-timestamp <timestamp>    start reading after this time (units: epoch seconds) (AT_TIMESTAMP)
     --no-new-line                   Don't print a new line between records (default: true)
     --regex-filter <regexFilter>    filter data using this regular expression
+    --unzip                         Unzip each record before printing
     -h, --help                      output usage information
   ```
 

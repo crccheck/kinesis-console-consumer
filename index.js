@@ -2,7 +2,7 @@
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Kinesis.html
 const Readable = require('stream').Readable
 const debug = require('debug')('kinesis-console-consumer')
-
+const zlib = require('zlib')
 
 function getStreams (client) {
   return client.listStreams({}).promise()
@@ -90,6 +90,9 @@ class KinesisStreamReader extends Readable {
       }
       data.Records.forEach((x) => {
         let record = this.options.parser(x.Data)
+        if (this.options.unzip) {
+            record = zlib.gunzipSync(Buffer.from(record, 'base64')).toString()
+        }
         if (this.options.newLine) {
           record += '\n'
         }

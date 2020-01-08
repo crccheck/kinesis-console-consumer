@@ -1,3 +1,9 @@
+## 1.7.1
+
+### Added
+
+* Add --unzip. Kinesis Console Consumer unzips the record before printing it.
+
 ## 1.7.0
 
 ### Added

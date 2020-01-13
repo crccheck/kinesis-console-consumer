@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node index.js",
     "lint": "eslint --ignore-path .gitignore --report-unused-disable-directives .",
-    "pretest": "npm run lint",
+    "posttest": "npm run lint",
     "test": "nyc mocha",
     "tdd": "mocha --watch --reporter dot --bail",
     "travisci": "nyc report --reporter=lcov && cat ./coverage/lcov.info | coveralls"

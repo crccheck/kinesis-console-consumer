@@ -1,8 +1,13 @@
-## 1.7.1
+## 1.8.0
 
 ### Added
 
-* Add --unzip. Kinesis Console Consumer unzips the record before printing it.
+* [60b18aa1a0] Add --unzip. Kinesis Console Consumer unzips the record before printing it. (#42)
+
+## 1.7.1
+
+* [c2c9879b60] - Maintenance (#40)
+* [c094f2f8ed] - rebuild package-lock.json to fix security vuln
 
 ## 1.7.0
 

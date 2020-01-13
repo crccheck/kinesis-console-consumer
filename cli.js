@@ -66,4 +66,4 @@ if (!program.args.length) {
     .catch(console.error)
 }
 
-updateNotifier({pkg}).notify()
+updateNotifier({ pkg }).notify()

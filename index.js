@@ -56,7 +56,7 @@ class KinesisStreamReader extends Readable {
     const whitelist = ['ShardIteratorType', 'Timestamp', 'StartingSequenceNumber']
     const shardIteratorOptions = Object.keys(this.options)
       .filter((x) => whitelist.indexOf(x) !== -1)
-      .reduce((result, key) => Object.assign(result, {[key]: this.options[key]}), {})
+      .reduce((result, key) => Object.assign(result, { [key]: this.options[key] }), {})
     return getShardId(this.client, this.streamName)
       .then((shardIds) => {
         const shardIterators = shardIds.map((shardId) =>
@@ -91,7 +91,7 @@ class KinesisStreamReader extends Readable {
       data.Records.forEach((x) => {
         let record = this.options.parser(x.Data)
         if (this.options.unzip) {
-            record = zlib.gunzipSync(Buffer.from(record, 'base64')).toString()
+          record = zlib.gunzipSync(Buffer.from(record, 'base64')).toString()
         }
         if (this.options.newLine) {
           record += '\n'

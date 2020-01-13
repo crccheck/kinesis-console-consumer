@@ -55,7 +55,7 @@ describe('main', () => {
 
   describe('getShardId', () => {
     it('throws when there are no shards', () => {
-      client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: []}})
+      client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [] } })
       return main._getShardId(client)
         .then((data) => {
           assert.ok(false, 'This should never run')
@@ -66,7 +66,7 @@ describe('main', () => {
     })
 
     it('gets shard id', () => {
-      client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
+      client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: 'shard id' }] } })
       return main._getShardId(client)
         .then((data) => {
           assert.deepEqual(data, ['shard id'])
@@ -87,7 +87,7 @@ describe('main', () => {
 
   describe('getShardIterator', () => {
     it('gets shard iterator', () => {
-      client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
+      client.getShardIterator = AWSPromise.resolve({ ShardIterator: 'shard iterator' })
       return main._getShardIterator(client)
         .then((data) => {
           assert.strictEqual(data, 'shard iterator')
@@ -108,7 +108,7 @@ describe('main', () => {
 
   describe('KinesisStreamReader', () => {
     it('constructor sets arguments', () => {
-      const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+      const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
       assert.ok(reader)
       assert.equal(reader.streamName, 'stream name')
       assert.equal(reader.options.foo, 'bar')
@@ -117,8 +117,8 @@ describe('main', () => {
 
     describe('_startKinesis', () => {
       it('passes shard iterator options ignoring extras', () => {
-        client.describeStream = AWSPromise.resolve({StreamDescription: {Shards: [{ShardId: 'shard id'}]}})
-        client.getShardIterator = AWSPromise.resolve({ShardIterator: 'shard iterator'})
+        client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: 'shard id' }] } })
+        client.getShardIterator = AWSPromise.resolve({ ShardIterator: 'shard iterator' })
         sinon.stub(main.KinesisStreamReader.prototype, 'readShard')
         const options = {
           foo: 'bar',
@@ -139,7 +139,7 @@ describe('main', () => {
 
       it('emits error when there is an error', () => {
         client.describeStream = AWSPromise.reject('lol error')
-        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+        const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
 
         reader.once('error', (err) => {
           assert.equal(err, 'lol error')
@@ -150,7 +150,7 @@ describe('main', () => {
 
       xit('logs when there is an error', () => {
         client.describeStream = AWSPromise.reject('lol error')
-        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+        const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
 
         return reader._startKinesis('stream name', {})
           .then(() => {
@@ -162,7 +162,7 @@ describe('main', () => {
     describe('readShard', () => {
       it('exits when there is an error preserving iterator', () => {
         client.getRecords = (params, cb) => cb(new Error('mock error'))
-        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+        const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
 
         reader.once('error', (err) => {
           assert.equal(err.message, 'mock error')
@@ -174,8 +174,8 @@ describe('main', () => {
       })
 
       it('exits when shard is closed', () => {
-        client.getRecords = (params, cb) => cb(null, {Records: []})
-        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+        client.getRecords = (params, cb) => cb(null, { Records: [] })
+        const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
 
         reader.once('error', () => {
           assert.ok(false, 'this should never run')
@@ -196,8 +196,8 @@ describe('main', () => {
         getNextIterator.onFirstCall().returns('shard-iterator-4')
         getNextIterator.onSecondCall().returns(undefined)
         client.getRecords = (params, cb) =>
-          cb(null, {Records: [record], NextShardIterator: getNextIterator()})
-        const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+          cb(null, { Records: [record], NextShardIterator: getNextIterator() })
+        const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
 
         reader.once('error', () => {
           assert.ok(false, 'this should never run')
@@ -219,7 +219,7 @@ describe('main', () => {
           SequenceNumber: 'seq-1',
         }
         client.getRecords = (params, cb) =>
-          cb(null, {Records: [record], NextShardIterator: undefined})
+          cb(null, { Records: [record], NextShardIterator: undefined })
         const reader = new main.KinesisStreamReader(client, 'stream name', {
           parser: JSON.parse,
         })
@@ -229,10 +229,10 @@ describe('main', () => {
         assert.ok(reader._readableState.objectMode)
         assert.equal(reader._readableState.buffer.length, 1)
         if (reader._readableState.buffer.head) {
-          assert.deepEqual(reader._readableState.buffer.head.data, {foo: 'bar'})
+          assert.deepEqual(reader._readableState.buffer.head.data, { foo: 'bar' })
         } else {
           // NODE4
-          assert.deepEqual(reader._readableState.buffer[0], {foo: 'bar'})
+          assert.deepEqual(reader._readableState.buffer[0], { foo: 'bar' })
         }
       })
 
@@ -242,7 +242,7 @@ describe('main', () => {
           SequenceNumber: 'seq-1',
         }
         client.getRecords = (params, cb) =>
-          cb(null, {Records: [record], NextShardIterator: undefined})
+          cb(null, { Records: [record], NextShardIterator: undefined })
         const reader = new main.KinesisStreamReader(client, 'stream name', {
           parser: () => { throw new Error('lolwut') },
         })
@@ -259,7 +259,7 @@ describe('main', () => {
 
   describe('_read', () => {
     it('only calls _startKinesis once', () => {
-      const reader = new main.KinesisStreamReader(client, 'stream name', {foo: 'bar'})
+      const reader = new main.KinesisStreamReader(client, 'stream name', { foo: 'bar' })
       sinon.stub(reader, '_startKinesis').resolves()
 
       reader._read()

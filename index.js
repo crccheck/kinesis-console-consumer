@@ -8,7 +8,7 @@ function getStreams (client) {
   return client.listStreams({}).promise()
 }
 
-function getShardId (client, streamName) {
+function getShardId (client, streamName, shardIds) {
   const params = {
     StreamName: streamName,
   }
@@ -19,10 +19,20 @@ function getShardId (client, streamName) {
       }
 
       debug('getShardId found %d shards', data.StreamDescription.Shards.length)
-      return data.StreamDescription.Shards.map((x) => x.ShardId)
+      const allShards = data.StreamDescription.Shards.map((x) => x.ShardId)
+
+      if (shardIds) {
+        const isSubset = shardIds.every(shardId => allShards.includes(shardId))
+        if (isSubset) {
+          return shardIds
+        } else {
+          throw new Error('Incorrect shards specified')
+        }
+      } else {
+        return allShards
+      }
     })
 }
-
 function getShardIterator (client, streamName, shardId, options) {
   const params = Object.assign({
     ShardId: shardId,
@@ -57,8 +67,9 @@ class KinesisStreamReader extends Readable {
     const shardIteratorOptions = Object.keys(this.options)
       .filter((x) => whitelist.indexOf(x) !== -1)
       .reduce((result, key) => Object.assign(result, { [key]: this.options[key] }), {})
-    return getShardId(this.client, this.streamName)
+    return getShardId(this.client, this.streamName, this.options.shardIds)
       .then((shardIds) => {
+        debug('shardIds:', shardIds)
         const shardIterators = shardIds.map((shardId) =>
           getShardIterator(this.client, this.streamName, shardId, shardIteratorOptions))
         return Promise.all(shardIterators)

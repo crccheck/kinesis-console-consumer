@@ -23,6 +23,7 @@ program
   .option('--no-new-line', "Don't print a new line between records")
   .option('--regex-filter <regexFilter>', 'filter data using this regular expression')
   .option('--unzip', 'Unzip each record before printing')
+  .option('--shard-ids <shardIds>', 'filter data only for specified comma seperated shard ids')
   .action((streamName) => {
     if (program.list) {
       // Hack program.args to be empty so the getStreams block below will run instead
@@ -55,6 +56,9 @@ program
       options.regexFilter = '.*'
     }
     options.unzip = program.unzip
+    if (program.shardIds) {
+      options.shardIds = program.shardIds.split(',').map(item => item.trim())
+    }
     const reader = new index.KinesisStreamReader(client, streamName, options)
     reader.pipe(process.stdout)
   })

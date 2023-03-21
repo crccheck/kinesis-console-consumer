@@ -94,6 +94,29 @@ describe('main', () => {
         })
     })
 
+    describe('for user specified shard ids', () => {
+      it('should provide shardIds if they are subset of shards', () => {
+        client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: '1' }, { ShardId: '2' }, { ShardId: '3' }] } })
+        const userSpecifiedShards = ['1', '2']
+        return main._getShardId(client, 'streamName', [...userSpecifiedShards])
+          .then((data) => {
+            assert.deepEqual(data, userSpecifiedShards)
+          })
+      })
+
+      it('should throw error if shardId doesnt exists', () => {
+        client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: '1' }, { ShardId: '2' }, { ShardId: '3' }] } })
+        const userSpecifiedShards = ['1', '4']
+        return main._getShardId(client, 'streamName', [...userSpecifiedShards])
+          .then((data) => {
+            assert.ok(false, 'This should never run')
+          })
+          .catch((err) => {
+            assert.strictEqual(err.message, 'Incorrect shards specified')
+          })
+      })
+    })
+
     it('handles errors', () => {
       client.getShardIterator = AWSPromise.reject('lol error')
       return main._getShardIterator(client)

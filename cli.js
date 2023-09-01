@@ -24,6 +24,7 @@ program
   .option('--regex-filter <regexFilter>', 'filter data using this regular expression')
   .option('--unzip', 'Unzip each record before printing')
   .option('--shard-ids <shardIds>', 'filter data only for specified comma seperated shard ids')
+  .option('--end-timestamp <endTimestamp>', 'stop retriving events newer than endTimestamp')
   .action((streamName) => {
     if (program.list) {
       // Hack program.args to be empty so the getStreams block below will run instead
@@ -50,6 +51,7 @@ program
       options.ShardIteratorType = 'LATEST'
     }
     options.newLine = program.newLine
+    options.endTimestamp = program.endTimestamp
     if (program.regexFilter) {
       options.regexFilter = program.regexFilter
     } else {

@@ -2,6 +2,7 @@ const assert = require('assert')
 const sinon = require('sinon')
 
 const main = require('../index')
+const AWS = require('aws-sdk')
 
 // HELPERS
 //////////
@@ -290,5 +291,22 @@ describe('main', () => {
 
       assert.equal(reader._startKinesis.callCount, 1)
     })
+  })
+
+  describe('_md5', () => {
+    it('should calculated md5', () => {
+      const actualMd5 = main._md5Hash('myjsdb.resume_attachment')
+
+      assert.equal(actualMd5, '205424661838058316519264344433691371355')
+    })
+
+    // it('should get shardId', async () => {
+    //   const client = new AWS.Kinesis()
+    //
+    //   const partitionKey = 'myjsdb.resume_attachment'
+    //   const actualshardId = await main.getShardId(client, 'odm-prod-ingester-stream', partitionKey)
+    //
+    //   assert.equal(actualshardId, 'shardId-000000000013')
+    // })
   })
 })

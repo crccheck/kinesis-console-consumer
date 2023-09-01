@@ -3,11 +3,42 @@
 const Readable = require('stream').Readable
 const debug = require('debug')('kinesis-console-consumer')
 const zlib = require('zlib')
+const crypto = require('crypto')
+
+/* global BigInt */
 
 function getStreams (client) {
   return client.listStreams({}).promise()
 }
+async function getShardId (client, streamName, partitionKey) {
+  try {
+    const hashKey = md5Hash(partitionKey)
+    const response = await client.describeStream({ StreamName: streamName }).promise()
+    if (!response.StreamDescription.Shards) {
+      throw new Error('No shards found in the stream.')
+    }
 
+    for (const shard of response.StreamDescription.Shards) {
+      const startingHashKey = shard.HashKeyRange.StartingHashKey
+      const endingHashKey = shard.HashKeyRange.EndingHashKey
+
+      if (hashKey >= startingHashKey && hashKey <= endingHashKey) {
+        return shard.ShardId
+      }
+    }
+
+    return null // Shard not found for the given partition key
+  } catch (error) {
+    console.error('Error getting shard ID:', error)
+    return null
+  }
+}
+
+
+function md5Hash (partitionKey) {
+  const hashBytes = crypto.createHash('md5').update(partitionKey).digest()
+  return BigInt('0x' + hashBytes.toString('hex')).toString()
+}
 function getShardIds (client, streamName, shardIds) {
   const params = {
     StreamName: streamName,
@@ -151,7 +182,9 @@ class KinesisStreamReader extends Readable {
 //////////
 
 exports.getStreams = getStreams
+exports.getShardId = getShardId
 exports._getShardIds = getShardIds
 exports._getShardIterator = getShardIterator
+exports._md5Hash = md5Hash
 
 exports.KinesisStreamReader = KinesisStreamReader

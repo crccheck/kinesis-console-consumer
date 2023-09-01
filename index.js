@@ -8,7 +8,7 @@ function getStreams (client) {
   return client.listStreams({}).promise()
 }
 
-function getShardId (client, streamName, shardIds) {
+function getShardIds (client, streamName, shardIds) {
   const params = {
     StreamName: streamName,
   }
@@ -18,7 +18,7 @@ function getShardId (client, streamName, shardIds) {
         throw new Error('No shards!')
       }
 
-      debug('getShardId found %d shards', data.StreamDescription.Shards.length)
+      debug('getShardIds found %d shards', data.StreamDescription.Shards.length)
       const allShards = data.StreamDescription.Shards.map((x) => x.ShardId)
 
       if (shardIds) {
@@ -67,7 +67,7 @@ class KinesisStreamReader extends Readable {
     const shardIteratorOptions = Object.keys(this.options)
       .filter((x) => whitelist.indexOf(x) !== -1)
       .reduce((result, key) => Object.assign(result, { [key]: this.options[key] }), {})
-    return getShardId(this.client, this.streamName, this.options.shardIds)
+    return getShardIds(this.client, this.streamName, this.options.shardIds)
       .then((shardIds) => {
         debug('shardIds:', shardIds)
         const shardIterators = shardIds.map((shardId) =>
@@ -151,7 +151,7 @@ class KinesisStreamReader extends Readable {
 //////////
 
 exports.getStreams = getStreams
-exports._getShardId = getShardId
+exports._getShardIds = getShardIds
 exports._getShardIterator = getShardIterator
 
 exports.KinesisStreamReader = KinesisStreamReader

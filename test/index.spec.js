@@ -56,7 +56,7 @@ describe('main', () => {
   describe('getShardId', () => {
     it('throws when there are no shards', () => {
       client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [] } })
-      return main._getShardId(client)
+      return main._getShardIds(client)
         .then((data) => {
           assert.ok(false, 'This should never run')
         })
@@ -67,7 +67,7 @@ describe('main', () => {
 
     it('gets shard id', () => {
       client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: 'shard id' }] } })
-      return main._getShardId(client)
+      return main._getShardIds(client)
         .then((data) => {
           assert.deepEqual(data, ['shard id'])
         })
@@ -75,7 +75,7 @@ describe('main', () => {
 
     it('handles errors', () => {
       client.describeStream = AWSPromise.reject('lol error')
-      return main._getShardId(client)
+      return main._getShardIds(client)
         .then((data) => {
           assert.strictEqual(true, false)
         })
@@ -98,7 +98,7 @@ describe('main', () => {
       it('should provide shardIds if they are subset of shards', () => {
         client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: '1' }, { ShardId: '2' }, { ShardId: '3' }] } })
         const userSpecifiedShards = ['1', '2']
-        return main._getShardId(client, 'streamName', [...userSpecifiedShards])
+        return main._getShardIds(client, 'streamName', [...userSpecifiedShards])
           .then((data) => {
             assert.deepEqual(data, userSpecifiedShards)
           })
@@ -107,7 +107,7 @@ describe('main', () => {
       it('should throw error if shardId doesnt exists', () => {
         client.describeStream = AWSPromise.resolve({ StreamDescription: { Shards: [{ ShardId: '1' }, { ShardId: '2' }, { ShardId: '3' }] } })
         const userSpecifiedShards = ['1', '4']
-        return main._getShardId(client, 'streamName', [...userSpecifiedShards])
+        return main._getShardIds(client, 'streamName', [...userSpecifiedShards])
           .then((data) => {
             assert.ok(false, 'This should never run')
           })

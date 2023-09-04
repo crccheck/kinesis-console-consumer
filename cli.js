@@ -29,6 +29,8 @@ program
   .option('--unzip', 'Unzip each record before printing')
   .option('--shard-ids <shardIds>', 'filter data only for specified comma seperated shard ids')
   .option('--partition-key <partitionKey>', 'as part of list command display the shardId for this partition key')
+  .option('--end-timestamp <endTimestamp>', 'stop retriving events newer than endTimestamp')
+  .option('--timestamp-path <timestampPath>', 'timestamp path - within the record')
   .action((streamName) => {
     if (program.list) {
       // Hack program.args to be empty so the getStreams block below will run instead
@@ -57,6 +59,8 @@ program
       options.ShardIteratorType = 'LATEST'
     }
     options.newLine = program.newLine
+    options.endTimestamp = program.endTimestamp
+    options.timestampPath = program.timestampPath
     if (program.regexFilter) {
       options.regexFilter = program.regexFilter
     } else {

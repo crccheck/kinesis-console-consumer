@@ -6,6 +6,7 @@ const zlib = require('zlib')
 const crypto = require('crypto')
 
 /* global BigInt */
+const _get = require('lodash.get')
 
 function getStreams (client) {
   return client.listStreams({}).promise()
@@ -106,14 +107,15 @@ class KinesisStreamReader extends Readable {
         return Promise.all(shardIterators)
       })
       .then((shardIterators) => {
-        shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
+        shardIterators.forEach((shardIterator) => this.readShard(shardIterator, this.options.endTimestamp, this.options.timestampPath))
       })
       .catch((err) => {
         this.emit('error', err) || console.log(err, err.stack)
       })
   }
 
-  readShard (shardIterator) {
+  readShard (shardIterator, endTimestamp, timestampPath) {
+    let shouldBreak = false
     this.iterators.add(shardIterator)
     debug('readShard starting from %s (out of %d)', shardIterator, this.iterators.size)
     const params = {
@@ -141,6 +143,14 @@ class KinesisStreamReader extends Readable {
         if (this.options.filter.test(record)) {
           this.push(record)
         }
+
+        if (endTimestamp) {
+          if (timestampPath && _get(JSON.parse(record), timestampPath) > endTimestamp) {
+            shouldBreak = true
+          } else if (x.ApproximateArrivalTimestamp > (new Date(endTimestamp))) {
+            shouldBreak = true
+          }
+        }
       })
 
       if (data.Records.length) {
@@ -154,10 +164,14 @@ class KinesisStreamReader extends Readable {
         return
       }
 
-      setTimeout(() => {
-        this.readShard(data.NextShardIterator)
+      const timeoutId = setTimeout(() => {
+        this.readShard(data.NextShardIterator, endTimestamp, timestampPath)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
       }, this.options.interval)
+
+      if (shouldBreak) {
+        clearTimeout(timeoutId)
+      }
     })
   }
 

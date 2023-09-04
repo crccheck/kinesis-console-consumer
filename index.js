@@ -19,8 +19,8 @@ async function getShardId (client, streamName, partitionKey) {
     }
 
     for (const shard of response.StreamDescription.Shards) {
-      const startingHashKey = shard.HashKeyRange.StartingHashKey
-      const endingHashKey = shard.HashKeyRange.EndingHashKey
+      const startingHashKey = BigInt(shard.HashKeyRange.StartingHashKey)
+      const endingHashKey = BigInt(shard.HashKeyRange.EndingHashKey)
 
       if (hashKey >= startingHashKey && hashKey <= endingHashKey) {
         return shard.ShardId

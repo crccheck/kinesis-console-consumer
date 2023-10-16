@@ -37,6 +37,10 @@ $ kinesis-console-consumer --help
     --no-new-line                   Don't print a new line between records (default: true)
     --regex-filter <regexFilter>    filter data using this regular expression
     --unzip                         Unzip each record before printing
+    --shard-ids <shardIds>          filter data only for specified comma seperated shard ids
+    --end-timestamp <endTimestamp>  stop retriving events newer than endTimestamp
+    --timestamp-path <timestampPath>  By default --end-timestamp will use ApproximateArrivalTimestamp. if you want ot compare some timestamp in data, specify path - within the record
+    --partition-key <partitionKey>  Use along with --list command to display the shardId for this partition key
     -h, --help                      output usage information
   ```
 
@@ -54,3 +58,12 @@ Only display records that have something that looks like an IP address.
 NOTE: `grep` is preferred, but not all platforms have it.
 
     kinesis-console-consumer 'hello-world' --regex-filter "\d+\.\d+\.\d+\.\d+"
+
+Display shardId of a particular partition key "key-name" for the stream "hello-world"
+
+    kinesis-console-consumer --list --partition-key 'key-name' 'hello-world' 
+
+Display records from a particular shardId , within start time and end time stamp and end time stamp is present in the data of the event (metadata.timestamp) with a particular regex on pass the output to jq to extract some specific data and store the output to a json file.
+
+    kinesis-console-consumer --shard-ids 'shardId-000000000024' --type-timestamp  2023-08-26T16:20:00.00000Z --end-timestamp 2023-08-26T21:15:00.000Z --timestamp-path 'metadata.timestamp' --regex-filter '"omu_source_endpoint":.*"MYSQL\|JBOS\|PRD\|PH"' odm-prod-ingester-stream | jq '.data.id, .metadata."table-name"' > customers_raw.json
+

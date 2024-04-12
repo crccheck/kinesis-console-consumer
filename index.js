@@ -3,12 +3,44 @@
 const Readable = require('stream').Readable
 const debug = require('debug')('kinesis-console-consumer')
 const zlib = require('zlib')
+const crypto = require('crypto')
+
+/* global BigInt */
+const _get = require('lodash.get')
 
 function getStreams (client) {
   return client.listStreams({}).promise()
 }
+async function getShardId (client, streamName, partitionKey) {
+  try {
+    const hashKey = md5Hash(partitionKey)
+    const response = await client.describeStream({ StreamName: streamName }).promise()
+    if (!response.StreamDescription.Shards) {
+      throw new Error('No shards found in the stream.')
+    }
 
-function getShardId (client, streamName) {
+    for (const shard of response.StreamDescription.Shards) {
+      const startingHashKey = BigInt(shard.HashKeyRange.StartingHashKey)
+      const endingHashKey = BigInt(shard.HashKeyRange.EndingHashKey)
+
+      if (hashKey >= startingHashKey && hashKey <= endingHashKey) {
+        return shard.ShardId
+      }
+    }
+
+    return null // Shard not found for the given partition key
+  } catch (error) {
+    console.error('Error getting shard ID:', error)
+    return null
+  }
+}
+
+
+function md5Hash (partitionKey) {
+  const hashBytes = crypto.createHash('md5').update(partitionKey).digest()
+  return BigInt('0x' + hashBytes.toString('hex')).toString()
+}
+function getShardIds (client, streamName, shardIds) {
   const params = {
     StreamName: streamName,
   }
@@ -18,11 +50,21 @@ function getShardId (client, streamName) {
         throw new Error('No shards!')
       }
 
-      debug('getShardId found %d shards', data.StreamDescription.Shards.length)
-      return data.StreamDescription.Shards.map((x) => x.ShardId)
+      debug('getShardIds found %d shards', data.StreamDescription.Shards.length)
+      const allShards = data.StreamDescription.Shards.map((x) => x.ShardId)
+
+      if (shardIds) {
+        const isSubset = shardIds.every(shardId => allShards.includes(shardId))
+        if (isSubset) {
+          return shardIds
+        } else {
+          throw new Error('Incorrect shards specified')
+        }
+      } else {
+        return allShards
+      }
     })
 }
-
 function getShardIterator (client, streamName, shardId, options) {
   const params = Object.assign({
     ShardId: shardId,
@@ -57,21 +99,23 @@ class KinesisStreamReader extends Readable {
     const shardIteratorOptions = Object.keys(this.options)
       .filter((x) => whitelist.indexOf(x) !== -1)
       .reduce((result, key) => Object.assign(result, { [key]: this.options[key] }), {})
-    return getShardId(this.client, this.streamName)
+    return getShardIds(this.client, this.streamName, this.options.shardIds)
       .then((shardIds) => {
+        debug('shardIds:', shardIds)
         const shardIterators = shardIds.map((shardId) =>
           getShardIterator(this.client, this.streamName, shardId, shardIteratorOptions))
         return Promise.all(shardIterators)
       })
       .then((shardIterators) => {
-        shardIterators.forEach((shardIterator) => this.readShard(shardIterator))
+        shardIterators.forEach((shardIterator) => this.readShard(shardIterator, this.options.endTimestamp, this.options.timestampPath))
       })
       .catch((err) => {
         this.emit('error', err) || console.log(err, err.stack)
       })
   }
 
-  readShard (shardIterator) {
+  readShard (shardIterator, endTimestamp, timestampPath) {
+    let shouldBreak = false
     this.iterators.add(shardIterator)
     debug('readShard starting from %s (out of %d)', shardIterator, this.iterators.size)
     const params = {
@@ -99,6 +143,14 @@ class KinesisStreamReader extends Readable {
         if (this.options.filter.test(record)) {
           this.push(record)
         }
+
+        if (endTimestamp) {
+          if (timestampPath && _get(JSON.parse(record), timestampPath) > endTimestamp) {
+            shouldBreak = true
+          } else if (x.ApproximateArrivalTimestamp > (new Date(endTimestamp))) {
+            shouldBreak = true
+          }
+        }
       })
 
       if (data.Records.length) {
@@ -112,10 +164,14 @@ class KinesisStreamReader extends Readable {
         return
       }
 
-      setTimeout(() => {
-        this.readShard(data.NextShardIterator)
+      const timeoutId = setTimeout(() => {
+        this.readShard(data.NextShardIterator, endTimestamp, timestampPath)
         // idleTimeBetweenReadsInMillis  http://docs.aws.amazon.com/streams/latest/dev/kinesis-low-latency.html
       }, this.options.interval)
+
+      if (shouldBreak) {
+        clearTimeout(timeoutId)
+      }
     })
   }
 
@@ -140,7 +196,9 @@ class KinesisStreamReader extends Readable {
 //////////
 
 exports.getStreams = getStreams
-exports._getShardId = getShardId
+exports.getShardId = getShardId
+exports._getShardIds = getShardIds
 exports._getShardIterator = getShardIterator
+exports._md5Hash = md5Hash
 
 exports.KinesisStreamReader = KinesisStreamReader
